@@ -123,6 +123,9 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		displayMainMenu();
 
 		ImGui::SetNextWindowPos(ImVec2(0, 22), ImGuiSetCond_FirstUseEver);
+		ImGuiStyle& style = ImGui::GetStyle(); // this struct has the colors
+		style.Colors[ImGuiCol_Text] = ImColor(255, 255, 255);
+		style.Colors[ImGuiCol_MenuBarBg] = ImColor(0, 0, 255);
 		if (ImGui::Begin("Example: Fixed Overlay", &opened, ImVec2(width, height), 1.0f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
 		{
 
