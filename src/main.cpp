@@ -108,7 +108,8 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	entry::MouseState mouseState;
 
-	bool opened = true;
+	bool opened_left = true;
+	bool opened_right = true;
 	while (!entry::processEvents(width, height, debug, reset, &mouseState))
 	{
 		imguiBeginFrame(mouseState.m_mx
@@ -126,27 +127,56 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		ImGuiStyle& style = ImGui::GetStyle(); // this struct has the colors
 		style.Colors[ImGuiCol_Text] = ImColor(255, 255, 255);
 		style.Colors[ImGuiCol_MenuBarBg] = ImColor(0, 0, 255);
-		if (ImGui::Begin("Example: Fixed Overlay", &opened, ImVec2(width, height), 1.0f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
+		if (ImGui::Begin("Left Panel", &opened_left, ImVec2(width / 2, height - 22), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
 		{
-
-
-			ImGui::BeginChild("Sub1", ImVec2(ImGui::GetWindowWidth() * 0.5f, ImGui::GetWindowSize().y));
-			for (int i = 0; i < 100; i++)
+			ImGui::BeginChild("Sub1", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowSize().y));
+			ImGui::Columns(4);
+			ImGui::Text("Name"); ImGui::NextColumn();
+			ImGui::Text("Ext"); ImGui::NextColumn();
+			ImGui::Text("Size"); ImGui::NextColumn();
+			ImGui::Text("Date"); ImGui::NextColumn();
+			ImGui::Separator();
+			for (int i = 0; i < 15; i++)
 			{
-				ImGui::Text("%04d: scrollable region", i);
-			}
-			ImGui::EndChild();
-
-			ImGui::SameLine();
-
-			ImGui::BeginChild("Sub2", ImVec2(ImGui::GetWindowWidth() * 0.5f, ImGui::GetWindowSize().y));
-			for (int i = 0; i < 100; i++)
-			{
-				ImGui::Text("%04d: scrollable region", i);
+				ImGui::Text("%04d: col1", i);
+				ImGui::NextColumn();
+				ImGui::Text("%04d: col2", i);
+				ImGui::NextColumn();
+				ImGui::Text("%04d: col3", i);
+				ImGui::NextColumn();
+				ImGui::Text("%04d: Col4", i);
+				ImGui::NextColumn();
 			}
 			ImGui::EndChild();
 
 			ImGui::End();
+		}
+		ImGui::SetNextWindowPos(ImVec2(width / 2, 22), ImGuiSetCond_FirstUseEver);
+		if (ImGui::Begin("Right Panel", &opened_right, ImVec2(width / 2, height - 22), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+		{
+			ImGui::BeginChild("Sub2", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowSize().y));
+			ImGui::Columns(4);
+			ImGui::Text("Name"); ImGui::NextColumn();
+			ImGui::Text("Ext"); ImGui::NextColumn();
+			ImGui::Text("Size"); ImGui::NextColumn();
+			ImGui::Text("Date"); ImGui::NextColumn();
+			ImGui::Separator();
+			for (int i = 0; i < 20; i++)
+			{
+				ImGui::Text("%04d: col1", i);
+				ImGui::NextColumn();
+				ImGui::Text("%04d: col2", i);
+				ImGui::NextColumn();
+				ImGui::Text("%04d: col3", i);
+				ImGui::NextColumn();
+				ImGui::Text("%04d: Col4", i);
+				ImGui::NextColumn();
+			}
+			ImGui::SetScrollPosHere();
+			ImGui::EndChild();
+
+			ImGui::End();
+
 		}
 		imguiEndFrame();
 
