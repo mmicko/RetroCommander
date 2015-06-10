@@ -107,6 +107,8 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	imguiCreate();
 
 	entry::MouseState mouseState;
+
+	bool opened = true;
 	while (!entry::processEvents(width, height, debug, reset, &mouseState))
 	{
 		imguiBeginFrame(mouseState.m_mx
@@ -120,6 +122,29 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		
 		displayMainMenu();
 
+		ImGui::SetNextWindowPos(ImVec2(0, 22), ImGuiSetCond_FirstUseEver);
+		if (ImGui::Begin("Example: Fixed Overlay", &opened, ImVec2(width, height), 1.0f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
+		{
+
+
+			ImGui::BeginChild("Sub1", ImVec2(ImGui::GetWindowWidth() * 0.5f, ImGui::GetWindowSize().y));
+			for (int i = 0; i < 100; i++)
+			{
+				ImGui::Text("%04d: scrollable region", i);
+			}
+			ImGui::EndChild();
+
+			ImGui::SameLine();
+
+			ImGui::BeginChild("Sub2", ImVec2(ImGui::GetWindowWidth() * 0.5f, ImGui::GetWindowSize().y));
+			for (int i = 0; i < 100; i++)
+			{
+				ImGui::Text("%04d: scrollable region", i);
+			}
+			ImGui::EndChild();
+
+			ImGui::End();
+		}
 		imguiEndFrame();
 
 		bgfx::submit(0);
