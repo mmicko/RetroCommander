@@ -333,9 +333,9 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 			ImGui::Columns(1);
 			ImGui::EndChild();
-
-			ImGui::End();
 		}
+        ImGui::End();
+
 		ImGui::SetNextWindowPos(ImVec2(width / 2, 19));
 		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
 		if (ImGui::Begin("Right Panel", NULL, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
@@ -405,8 +405,8 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			ImGui::Columns(1);
 			ImGui::EndChild();
 
-			ImGui::End();
 		}
+        ImGui::End();
 
 		imguiEndFrame();
 
