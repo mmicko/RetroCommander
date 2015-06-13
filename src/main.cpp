@@ -223,12 +223,13 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			ImVec2 box0 = ImGui::GetWindowContentRegionMax();
 			box0.y = 15;
 			box0.x -= 5;
+			float loc[4];
 			ImGui::BeginChild("Sub0", box0, border);
 			ImGui::Columns(4);
-			ImGui::Text("Name");  ImGui::NextColumn();
-			ImGui::Text("Ext");   ImGui::NextColumn();
-			ImGui::Text("Size");  ImGui::NextColumn();
-			ImGui::Text("Date");  ImGui::NextColumn();
+			ImGui::Text("Name"); loc[0] = ImGui::GetColumnOffset(); ImGui::NextColumn();
+			ImGui::Text("Ext");  loc[1] = ImGui::GetColumnOffset(); ImGui::NextColumn();
+			ImGui::Text("Size"); loc[2] = ImGui::GetColumnOffset(); ImGui::NextColumn();
+			ImGui::Text("Date"); loc[3] = ImGui::GetColumnOffset(); ImGui::NextColumn();
 			ImGui::Columns(1);
 			ImGui::EndChild();
 
@@ -237,7 +238,10 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			box.x -= 5;
 			ImGui::BeginChild("Sub1", box, border);
 			ImGui::Columns(4);
-
+			ImGui::SetColumnOffset(0,loc[0]);
+			ImGui::SetColumnOffset(1,loc[1]);
+			ImGui::SetColumnOffset(2,loc[2]);
+			ImGui::SetColumnOffset(3,loc[3]);
 			for (int i = 0; i < 150; i++)
 			{
 
