@@ -10,6 +10,10 @@
 #include "imgui/imgui.h"
 #include "cmd.h"
 #include "input.h"
+#include <dirent.h>
+#include <vector>
+#include <sys/stat.h>
+#include <time.h>
 
 void displayMainMenu()
 {
@@ -197,11 +201,54 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	cmdAdd("menu", cmdMenu);
 	
-	bool border = false;
-
 	static bool selected_l[150];
 	for (int i = 0; i < 150; i++) selected_l[i] = false;
-		
+	
+	struct file_descriptor
+	{
+		std::string name;
+		bool is_dir;
+		bool is_reg;
+		size_t size;
+		std::string datetime;
+	};
+
+	std::vector<file_descriptor> files;
+	
+	struct dirent* dirent;
+	struct stat stat_info;
+	
+	DIR* directory = opendir(".");
+	if (directory != NULL)
+	{
+		while ((dirent = readdir(directory)) != NULL){
+			file_descriptor file;
+			file.size = 0;
+			file.is_dir = false;
+			file.is_reg = false;
+			if (dirent->d_namlen > 0)
+				file.name = std::string(dirent->d_name);
+			if (stat(dirent->d_name, &stat_info) != -1)
+			{
+				if (S_ISREG(stat_info.st_mode)){
+					file.is_reg = true;
+				}
+				if (S_ISDIR(stat_info.st_mode)){
+					file.is_dir = true;
+				}
+				file.size = stat_info.st_size;
+			}
+			char datetime[100];
+			const struct tm* time = localtime(&stat_info.st_mtime);
+			strftime(datetime, 100, "%c", time);
+			file.datetime = std::string(datetime);
+			files.push_back(file);
+		}
+	}
+
+	closedir(directory);
+
+
 	while (!entry::processEvents(width, height, debug, reset, &mouseState))
 	{
 		// Set view 0 default viewport.
@@ -220,13 +267,13 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		displayMainMenu();
 		ImGui::SetNextWindowPos(ImVec2(0, 19));
 		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
-		if (ImGui::Begin("Left Panel", &opened_left, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
+		if (ImGui::Begin("Left Panel", NULL, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
 		{
 			ImVec2 box0 = ImGui::GetWindowContentRegionMax();
 			box0.y = 15;
 			box0.x -= 5;
 			float loc[4];
-			ImGui::BeginChild("Sub0", box0, border);
+			ImGui::BeginChild("Sub0", box0, false);
 			ImGui::Columns(4);
 			ImGui::Text("Name"); loc[0] = ImGui::GetColumnOffset(); ImGui::NextColumn();
 			ImGui::Text("Ext");  loc[1] = ImGui::GetColumnOffset(); ImGui::NextColumn();
@@ -238,23 +285,29 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			ImVec2 box = ImGui::GetWindowContentRegionMax();
 			box.y -= 60 + 35;
 			box.x -= 5;
-			ImGui::BeginChild("Sub1", box, border);
+			ImGui::BeginChild("Sub1", box, false);
 			ImGui::Columns(4);
 			ImGui::SetColumnOffset(0,loc[0]);
 			ImGui::SetColumnOffset(1,loc[1]);
 			ImGui::SetColumnOffset(2,loc[2]);
 			ImGui::SetColumnOffset(3,loc[3]);
 			
-
-			for (int i = 0; i < 150; i++)
+			int i = 0;
+			for (std::vector<file_descriptor>::iterator it = files.begin(); it != files.end(); ++it)
 			{
 
 				char buf[100];
-				sprintf(buf, "file_%d", i);
+				sprintf(buf, "%s", (*it).name.c_str());
 				ImGui::Selectable(buf, &selected_l[i]); ImGui::NextColumn();
-				ImGui::Text("c");   ImGui::NextColumn();
-				ImGui::Text("%d", 23200 % (i+1));  ImGui::NextColumn();
-				ImGui::Text("2015-06-01");  ImGui::NextColumn();
+				ImGui::Text("");   ImGui::NextColumn();
+				if ((*it).is_dir) {
+					ImGui::Text("<DIR>");  ImGui::NextColumn();
+				}
+				else {
+					ImGui::Text("%d", (*it).size);  ImGui::NextColumn();
+				}
+				ImGui::Text("%s", (*it).datetime.c_str());  ImGui::NextColumn();
+				i++;
 			}
 			ImGui::EndChild();
 
@@ -262,7 +315,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			box2.y = 50;
 			box2.x -= 5;
 			
-			ImGui::BeginChild("Sub3", box2, border);
+			ImGui::BeginChild("Sub3", box2, false);
 			ImGui::Columns(4);
 			ImGui::Text("Name");  ImGui::NextColumn();
 			ImGui::Text("Ext");   ImGui::NextColumn();
@@ -285,31 +338,47 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		}
 		ImGui::SetNextWindowPos(ImVec2(width / 2, 19));
 		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
-		if (ImGui::Begin("Right Panel", &opened_right, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
+		if (ImGui::Begin("Right Panel", NULL, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
 		{
 			ImVec2 box0 = ImGui::GetWindowContentRegionMax();
 			box0.y = 15;
 			box0.x -= 5;
-			ImGui::BeginChild("RSub0", box0, border);
+			float loc[4];
+			ImGui::BeginChild("Sub0", box0, false);
 			ImGui::Columns(4);
-			ImGui::Text("Name");  ImGui::NextColumn();
-			ImGui::Text("Ext");   ImGui::NextColumn();
-			ImGui::Text("Size");  ImGui::NextColumn();
-			ImGui::Text("Date");  ImGui::NextColumn();
+			ImGui::Text("Name"); loc[0] = ImGui::GetColumnOffset(); ImGui::NextColumn();
+			ImGui::Text("Ext");  loc[1] = ImGui::GetColumnOffset(); ImGui::NextColumn();
+			ImGui::Text("Size"); loc[2] = ImGui::GetColumnOffset(); ImGui::NextColumn();
+			ImGui::Text("Date"); loc[3] = ImGui::GetColumnOffset(); ImGui::NextColumn();
 			ImGui::Columns(1);
 			ImGui::EndChild();
 
 			ImVec2 box = ImGui::GetWindowContentRegionMax();
 			box.y -= 60 + 35;
 			box.x -= 5;
-			ImGui::BeginChild("RSub1", box, border);
+			ImGui::BeginChild("Sub1", box, false);
+			ImGui::Columns(4);
+			ImGui::SetColumnOffset(0, loc[0]);
+			ImGui::SetColumnOffset(1, loc[1]);
+			ImGui::SetColumnOffset(2, loc[2]);
+			ImGui::SetColumnOffset(3, loc[3]);
 
-			for (int i = 0; i < 150; i++)
+			int i = 0;
+			for (std::vector<file_descriptor>::iterator it = files.begin(); it != files.end(); ++it)
 			{
-				static bool selected[3] = { false, false, false };
+
 				char buf[100];
-				sprintf(buf, "file_%d.c     ", i);
-				ImGui::Selectable(buf, &selected[0]);
+				sprintf(buf, "%s", (*it).name.c_str());
+				ImGui::Selectable(buf, &selected_l[i]); ImGui::NextColumn();
+				ImGui::Text("");   ImGui::NextColumn();
+				if ((*it).is_dir) {
+					ImGui::Text("<DIR>");  ImGui::NextColumn();
+				}
+				else {
+					ImGui::Text("%d", (*it).size);  ImGui::NextColumn();
+				}
+				ImGui::Text("%s", (*it).datetime.c_str());  ImGui::NextColumn();
+				i++;
 			}
 			ImGui::EndChild();
 
@@ -317,7 +386,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			box2.y = 50;
 			box2.x -= 5;
 
-			ImGui::BeginChild("RSub3", box2, border);
+			ImGui::BeginChild("Sub3", box2, false);
 			ImGui::Columns(4);
 			ImGui::Text("Name");  ImGui::NextColumn();
 			ImGui::Text("Ext");   ImGui::NextColumn();
@@ -337,7 +406,6 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			ImGui::EndChild();
 
 			ImGui::End();
-
 		}
 
 		imguiEndFrame();
