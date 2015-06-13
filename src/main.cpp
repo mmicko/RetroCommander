@@ -199,6 +199,9 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	
 	bool border = false;
 
+	static bool selected_l[150];
+	for (int i = 0; i < 150; i++) selected_l[i] = false;
+		
 	while (!entry::processEvents(width, height, debug, reset, &mouseState))
 	{
 		// Set view 0 default viewport.
@@ -215,7 +218,6 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		
 		
 		displayMainMenu();
-
 		ImGui::SetNextWindowPos(ImVec2(0, 19));
 		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
 		if (ImGui::Begin("Left Panel", &opened_left, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
@@ -242,13 +244,14 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			ImGui::SetColumnOffset(1,loc[1]);
 			ImGui::SetColumnOffset(2,loc[2]);
 			ImGui::SetColumnOffset(3,loc[3]);
+			
+
 			for (int i = 0; i < 150; i++)
 			{
 
-				static bool selected[3] = { false, false, false };
 				char buf[100];
 				sprintf(buf, "file_%d", i);
-				ImGui::Selectable(buf, &selected[0]); ImGui::NextColumn();
+				ImGui::Selectable(buf, &selected_l[i]); ImGui::NextColumn();
 				ImGui::Text("c");   ImGui::NextColumn();
 				ImGui::Text("%d", 23200 % (i+1));  ImGui::NextColumn();
 				ImGui::Text("2015-06-01");  ImGui::NextColumn();
