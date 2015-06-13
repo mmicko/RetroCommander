@@ -196,6 +196,8 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	inputAddBindings("bindings", s_bindings);
 
 	cmdAdd("menu", cmdMenu);
+	
+	bool border = false;
 
 	while (!entry::processEvents(width, height, debug, reset, &mouseState))
 	{
@@ -218,17 +220,22 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
 		if (ImGui::Begin("Left Panel", &opened_left, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
 		{
+			ImVec2 box0 = ImGui::GetWindowContentRegionMax();
+			box0.y = 15;
+			box0.x -= 5;
+			ImGui::BeginChild("Sub0", box0, border);
 			ImGui::Columns(4);
 			ImGui::Text("Name");  ImGui::NextColumn();
 			ImGui::Text("Ext");   ImGui::NextColumn();
 			ImGui::Text("Size");  ImGui::NextColumn();
 			ImGui::Text("Date");  ImGui::NextColumn();
-			ImGui::Separator();
 			ImGui::Columns(1);
+			ImGui::EndChild();
+
 			ImVec2 box = ImGui::GetWindowContentRegionMax();
-			box.y -= 40 + 50;
+			box.y -= 60 + 35;
 			box.x -= 5;
-			ImGui::BeginChild("Sub1", box, true);
+			ImGui::BeginChild("Sub1", box, border);
 
 			for (int i = 0; i < 150; i++)
 			{
@@ -238,10 +245,12 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 				ImGui::Selectable(buf, &selected[0]);
 			}
 			ImGui::EndChild();
+
 			ImVec2 box2 = ImGui::GetWindowContentRegionMax();
-			box2.y -= 40 + 50 + 560;
+			box2.y = 50;
 			box2.x -= 5;
-			ImGui::BeginChild("Sub3", box2, true);
+			
+			ImGui::BeginChild("Sub3", box2, border);
 			ImGui::Columns(4);
 			ImGui::Text("Name");  ImGui::NextColumn();
 			ImGui::Text("Ext");   ImGui::NextColumn();
@@ -252,26 +261,36 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			ImGui::Text("Ext");   ImGui::NextColumn();
 			ImGui::Text("Size");  ImGui::NextColumn();
 			ImGui::Text("Date");  ImGui::NextColumn();
+			ImGui::Text("Name");  ImGui::NextColumn();
+			ImGui::Text("Ext");   ImGui::NextColumn();
+			ImGui::Text("Size");  ImGui::NextColumn();
+			ImGui::Text("Date");  ImGui::NextColumn();
+
 			ImGui::Columns(1);
 			ImGui::EndChild();
+
 			ImGui::End();
 		}
 		ImGui::SetNextWindowPos(ImVec2(width / 2, 19));
 		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
 		if (ImGui::Begin("Right Panel", &opened_right, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
 		{
+			ImVec2 box0 = ImGui::GetWindowContentRegionMax();
+			box0.y = 15;
+			box0.x -= 5;
+			ImGui::BeginChild("RSub0", box0, border);
 			ImGui::Columns(4);
 			ImGui::Text("Name");  ImGui::NextColumn();
 			ImGui::Text("Ext");   ImGui::NextColumn();
 			ImGui::Text("Size");  ImGui::NextColumn();
 			ImGui::Text("Date");  ImGui::NextColumn();
-			ImGui::Separator();
 			ImGui::Columns(1);
+			ImGui::EndChild();
 
 			ImVec2 box = ImGui::GetWindowContentRegionMax();
-			box.y -= 40 + 50;
+			box.y -= 60 + 35;
 			box.x -= 5;
-			ImGui::BeginChild("Sub2", box, true);
+			ImGui::BeginChild("RSub1", box, border);
 
 			for (int i = 0; i < 150; i++)
 			{
@@ -281,10 +300,12 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 				ImGui::Selectable(buf, &selected[0]);
 			}
 			ImGui::EndChild();
+
 			ImVec2 box2 = ImGui::GetWindowContentRegionMax();
-			box2.y -= 40 + 50 + 560;
+			box2.y = 50;
 			box2.x -= 5;
-			ImGui::BeginChild("Sub3", box2, true);
+
+			ImGui::BeginChild("RSub3", box2, border);
 			ImGui::Columns(4);
 			ImGui::Text("Name");  ImGui::NextColumn();
 			ImGui::Text("Ext");   ImGui::NextColumn();
@@ -295,9 +316,16 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			ImGui::Text("Ext");   ImGui::NextColumn();
 			ImGui::Text("Size");  ImGui::NextColumn();
 			ImGui::Text("Date");  ImGui::NextColumn();
+			ImGui::Text("Name");  ImGui::NextColumn();
+			ImGui::Text("Ext");   ImGui::NextColumn();
+			ImGui::Text("Size");  ImGui::NextColumn();
+			ImGui::Text("Date");  ImGui::NextColumn();
+
 			ImGui::Columns(1);
 			ImGui::EndChild();
+
 			ImGui::End();
+
 		}
 
 		imguiEndFrame();
