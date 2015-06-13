@@ -110,8 +110,19 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	bool opened_left = true;
 	bool opened_right = true;
+
+	// Set view 0 clear state.
+	bgfx::setViewClear(0
+		, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH
+		, 0x303030ff
+		, 1.0f
+		, 0
+		);
 	while (!entry::processEvents(width, height, debug, reset, &mouseState))
 	{
+		// Set view 0 default viewport.
+		bgfx::setViewRect(0, 0, 0, width, height);
+		
 		imguiBeginFrame(mouseState.m_mx
 			, mouseState.m_my
 			, (mouseState.m_buttons[entry::MouseButton::Left] ? IMGUI_MBUT_LEFT : 0)
@@ -122,11 +133,11 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			);
 		
 		displayMainMenu();
-
-		ImGui::SetNextWindowPos(ImVec2(0, 22), ImGuiSetCond_FirstUseEver);
-		ImGuiStyle& style = ImGui::GetStyle(); // this struct has the colors
-		style.Colors[ImGuiCol_Text] = ImColor(255, 255, 255);
-		style.Colors[ImGuiCol_MenuBarBg] = ImColor(0, 0, 255);
+		
+		ImGui::SetNextWindowPos(ImVec2(0, 22));
+		//ImGuiStyle& style = ImGui::GetStyle(); // this struct has the colors
+		//style.Colors[ImGuiCol_Text] = ImColor(255, 255, 255);
+		//style.Colors[ImGuiCol_MenuBarBg] = ImColor(0, 0, 255);
 		if (ImGui::Begin("Left Panel", &opened_left, ImVec2(width / 2, height - 22), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
 		{
 			ImGui::BeginChild("Sub1", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowSize().y));
@@ -151,9 +162,10 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 			ImGui::End();
 		}
-		ImGui::SetNextWindowPos(ImVec2(width / 2, 22), ImGuiSetCond_FirstUseEver);
+		ImGui::SetNextWindowPos(ImVec2(width / 2, 22));
 		if (ImGui::Begin("Right Panel", &opened_right, ImVec2(width / 2, height - 22), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
 		{
+			//ImGui::PushStyleVar(ImGuiStyleVar_ChildWindowRounding, 5.0f);
 			ImGui::BeginChild("Sub2", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowSize().y));
 			ImGui::Columns(4);
 			ImGui::Text("Name"); ImGui::NextColumn();
@@ -174,9 +186,8 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			}
 			ImGui::SetScrollPosHere();
 			ImGui::EndChild();
-
+			//ImGui::PopStyleVar();
 			ImGui::End();
-
 		}
 		imguiEndFrame();
 
