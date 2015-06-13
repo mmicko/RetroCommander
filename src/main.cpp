@@ -186,8 +186,9 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.25f, 0.25f, 1.00f));
 		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.25f, 0.25f, 1.00f));
 		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.25f, 0.25f, 1.00f));
-		// ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.00f, 0.00f, 1.00f));
+		
 		displayMainMenu();
+
 		ImGui::PopStyleColor();
 		ImGui::PopStyleColor();
 		ImGui::PopStyleColor();
@@ -205,8 +206,9 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			ImGui::Separator();
 			ImGui::Columns(1);
 			ImVec2 box = ImGui::GetWindowContentRegionMax();
-			box.y -= 40;
-			ImGui::BeginChild("Sub1", box);
+			box.y -= 40 + 50;
+			box.x -= 5;
+			ImGui::BeginChild("Sub1", box, true);
 
 			for (int i = 0; i < 150; i++)
 			{
@@ -216,7 +218,22 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 				ImGui::Selectable(buf, &selected[0]);
 			}
 			ImGui::EndChild();
+			ImVec2 box2 = ImGui::GetWindowContentRegionMax();
+			box2.y -= 40 + 50 + 560;
+			box2.x -= 5;
+			ImGui::BeginChild("Sub3", box2, true);
+			ImGui::Columns(4);
+			ImGui::Text("Name");  ImGui::NextColumn();
+			ImGui::Text("Ext");   ImGui::NextColumn();
+			ImGui::Text("Size");  ImGui::NextColumn();
+			ImGui::Text("Date");  ImGui::NextColumn();
 
+			ImGui::Text("Name");  ImGui::NextColumn();
+			ImGui::Text("Ext");   ImGui::NextColumn();
+			ImGui::Text("Size");  ImGui::NextColumn();
+			ImGui::Text("Date");  ImGui::NextColumn();
+			ImGui::Columns(1);
+			ImGui::EndChild();
 			ImGui::End();
 		}
 		ImGui::SetNextWindowPos(ImVec2(width / 2, 19));
@@ -231,23 +248,35 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			ImGui::Separator();
 			ImGui::Columns(1);
 
-			ImGui::BeginChild("Sub2", ImGui::GetWindowContentRegionMax());
+			ImVec2 box = ImGui::GetWindowContentRegionMax();
+			box.y -= 40 + 50;
+			box.x -= 5;
+			ImGui::BeginChild("Sub2", box, true);
 
 			for (int i = 0; i < 150; i++)
 			{
 				static bool selected[3] = { false, false, false };
-				ImGui::BeginGroup();
-				ImGui::Selectable("main.c", &selected[0]);    ImGui::SameLine(); ImGui::Text(" 2,345 bytes");
-				ImGui::EndGroup();
-				ImGui::BeginGroup();
-				ImGui::Selectable("Hello.cpp", &selected[1]); ImGui::SameLine(); ImGui::Text("12,345 bytes");
-				ImGui::EndGroup();
-				ImGui::BeginGroup();
-				ImGui::Selectable("Hello.h", &selected[2]);   ImGui::SameLine(); ImGui::Text(" 2,345 bytes");
-				ImGui::EndGroup();
+				char buf[100];
+				sprintf(buf, "file_%d.c     ", i);
+				ImGui::Selectable(buf, &selected[0]);
 			}
 			ImGui::EndChild();
+			ImVec2 box2 = ImGui::GetWindowContentRegionMax();
+			box2.y -= 40 + 50 + 560;
+			box2.x -= 5;
+			ImGui::BeginChild("Sub3", box2, true);
+			ImGui::Columns(4);
+			ImGui::Text("Name");  ImGui::NextColumn();
+			ImGui::Text("Ext");   ImGui::NextColumn();
+			ImGui::Text("Size");  ImGui::NextColumn();
+			ImGui::Text("Date");  ImGui::NextColumn();
 
+			ImGui::Text("Name");  ImGui::NextColumn();
+			ImGui::Text("Ext");   ImGui::NextColumn();
+			ImGui::Text("Size");  ImGui::NextColumn();
+			ImGui::Text("Date");  ImGui::NextColumn();
+			ImGui::Columns(1);
+			ImGui::EndChild();
 			ImGui::End();
 		}
 
