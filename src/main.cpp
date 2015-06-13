@@ -3,6 +3,7 @@
  * License: http://www.opensource.org/licenses/BSD-3-Clause
  */
 
+#include <stdio.h>
 #include "common.h"
 #include <bgfx.h>
 #include <bx/uint32_t.h>
@@ -110,6 +111,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	bool opened_left = true;
 	bool opened_right = true;
+	bool opened = true;
 
 	// Set view 0 clear state.
 	bgfx::setViewClear(0
@@ -118,6 +120,54 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		, 1.0f
 		, 0
 		);
+	ImGuiStyle& style = ImGui::GetStyle(); // this struct has the colors
+	style.WindowRounding = 0.0f;
+	style.FrameRounding = 0.0f;
+	//style.Colors[ImGuiCol_Text] = ImColor(255, 255, 255);
+	//style.Colors[ImGuiCol_MenuBarBg] = ImColor(0, 0, 255);
+
+
+	style.Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.00f, 1.00f, 1.00f);
+	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.00f, 0.00f, 0.80f, 1.00f);
+	style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	style.Colors[ImGuiCol_Border] = ImVec4(0.70f, 0.70f, 0.70f, 0.65f);
+	style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.60f);
+	style.Colors[ImGuiCol_FrameBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.30f);   // Background of checkbox, radio button, plot, slider, text input
+	style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.90f, 0.80f, 0.80f, 0.40f);
+	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.90f, 0.65f, 0.65f, 0.45f);
+	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.50f, 0.50f, 1.00f, 0.45f);
+	style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.40f, 0.40f, 0.80f, 0.20f);
+	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.00f, 0.56f, 0.56f, 1.0f);
+	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.40f, 0.40f, 0.80f, 0.15f);
+	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.40f, 0.40f, 0.80f, 0.30f);
+	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.40f, 0.40f, 0.80f, 0.40f);
+	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.80f, 0.50f, 0.50f, 0.40f);
+	style.Colors[ImGuiCol_ComboBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.99f);
+	style.Colors[ImGuiCol_CheckMark] = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
+	style.Colors[ImGuiCol_SliderGrab] = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
+	style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.80f, 0.50f, 0.50f, 1.00f);
+	style.Colors[ImGuiCol_Button] = ImVec4(0.67f, 0.40f, 0.40f, 0.60f);
+	style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.67f, 0.40f, 0.40f, 1.00f);
+	style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.80f, 0.50f, 0.50f, 1.00f);
+	style.Colors[ImGuiCol_Header] = ImVec4(0.40f, 0.40f, 0.90f, 0.45f);
+	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.45f, 0.45f, 0.90f, 0.80f);
+	style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.53f, 0.53f, 0.87f, 0.80f);
+	style.Colors[ImGuiCol_Column] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+	style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.70f, 0.60f, 0.60f, 1.00f);
+	style.Colors[ImGuiCol_ColumnActive] = ImVec4(0.90f, 0.70f, 0.70f, 1.00f);
+	style.Colors[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
+	style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(1.00f, 1.00f, 1.00f, 0.60f);
+	style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(1.00f, 1.00f, 1.00f, 0.90f);
+	style.Colors[ImGuiCol_CloseButton] = ImVec4(0.50f, 0.50f, 0.90f, 0.50f);
+	style.Colors[ImGuiCol_CloseButtonHovered] = ImVec4(0.70f, 0.70f, 0.90f, 0.60f);
+	style.Colors[ImGuiCol_CloseButtonActive] = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
+	style.Colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+	style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+	style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+	style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.00f, 0.00f, 1.00f, 0.35f);
+	style.Colors[ImGuiCol_TooltipBg] = ImVec4(0.05f, 0.05f, 0.10f, 0.90f);
 	while (!entry::processEvents(width, height, debug, reset, &mouseState))
 	{
 		// Set view 0 default viewport.
@@ -132,63 +182,75 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			, height
 			);
 		
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.00f, 0.56f, 0.56f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.25f, 0.25f, 1.00f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.25f, 0.25f, 1.00f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.25f, 0.25f, 1.00f));
+		// ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.00f, 0.00f, 1.00f));
 		displayMainMenu();
-		
-		ImGui::SetNextWindowPos(ImVec2(0, 22));
-		//ImGuiStyle& style = ImGui::GetStyle(); // this struct has the colors
-		//style.Colors[ImGuiCol_Text] = ImColor(255, 255, 255);
-		//style.Colors[ImGuiCol_MenuBarBg] = ImColor(0, 0, 255);
-		if (ImGui::Begin("Left Panel", &opened_left, ImVec2(width / 2, height - 22), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+		ImGui::PopStyleColor();
+		ImGui::PopStyleColor();
+		ImGui::PopStyleColor();
+		ImGui::PopStyleColor();
+
+		ImGui::SetNextWindowPos(ImVec2(0, 19));
+		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
+		if (ImGui::Begin("Left Panel", &opened_left, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
 		{
-			ImGui::BeginChild("Sub1", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowSize().y));
 			ImGui::Columns(4);
-			ImGui::Text("Name"); ImGui::NextColumn();
-			ImGui::Text("Ext"); ImGui::NextColumn();
-			ImGui::Text("Size"); ImGui::NextColumn();
-			ImGui::Text("Date"); ImGui::NextColumn();
+			ImGui::Text("Name");  ImGui::NextColumn();
+			ImGui::Text("Ext");   ImGui::NextColumn();
+			ImGui::Text("Size");  ImGui::NextColumn();
+			ImGui::Text("Date");  ImGui::NextColumn();
 			ImGui::Separator();
-			for (int i = 0; i < 15; i++)
+			ImGui::Columns(1);
+			ImVec2 box = ImGui::GetWindowContentRegionMax();
+			box.y -= 40;
+			ImGui::BeginChild("Sub1", box);
+
+			for (int i = 0; i < 150; i++)
 			{
-				ImGui::Text("%04d: col1", i);
-				ImGui::NextColumn();
-				ImGui::Text("%04d: col2", i);
-				ImGui::NextColumn();
-				ImGui::Text("%04d: col3", i);
-				ImGui::NextColumn();
-				ImGui::Text("%04d: Col4", i);
-				ImGui::NextColumn();
+				static bool selected[3] = { false, false, false };
+				char buf[100];
+				sprintf(buf, "file_%d.c     ", i);
+				ImGui::Selectable(buf, &selected[0]);
 			}
 			ImGui::EndChild();
 
 			ImGui::End();
 		}
-		ImGui::SetNextWindowPos(ImVec2(width / 2, 22));
-		if (ImGui::Begin("Right Panel", &opened_right, ImVec2(width / 2, height - 22), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+		ImGui::SetNextWindowPos(ImVec2(width / 2, 19));
+		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
+		if (ImGui::Begin("Right Panel", &opened_right, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
 		{
-			//ImGui::PushStyleVar(ImGuiStyleVar_ChildWindowRounding, 5.0f);
-			ImGui::BeginChild("Sub2", ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowSize().y));
 			ImGui::Columns(4);
-			ImGui::Text("Name"); ImGui::NextColumn();
-			ImGui::Text("Ext"); ImGui::NextColumn();
-			ImGui::Text("Size"); ImGui::NextColumn();
-			ImGui::Text("Date"); ImGui::NextColumn();
+			ImGui::Text("Name");  ImGui::NextColumn();
+			ImGui::Text("Ext");   ImGui::NextColumn();
+			ImGui::Text("Size");  ImGui::NextColumn();
+			ImGui::Text("Date");  ImGui::NextColumn();
 			ImGui::Separator();
-			for (int i = 0; i < 20; i++)
+			ImGui::Columns(1);
+
+			ImGui::BeginChild("Sub2", ImGui::GetWindowContentRegionMax());
+
+			for (int i = 0; i < 150; i++)
 			{
-				ImGui::Text("%04d: col1", i);
-				ImGui::NextColumn();
-				ImGui::Text("%04d: col2", i);
-				ImGui::NextColumn();
-				ImGui::Text("%04d: col3", i);
-				ImGui::NextColumn();
-				ImGui::Text("%04d: Col4", i);
-				ImGui::NextColumn();
+				static bool selected[3] = { false, false, false };
+				ImGui::BeginGroup();
+				ImGui::Selectable("main.c", &selected[0]);    ImGui::SameLine(); ImGui::Text(" 2,345 bytes");
+				ImGui::EndGroup();
+				ImGui::BeginGroup();
+				ImGui::Selectable("Hello.cpp", &selected[1]); ImGui::SameLine(); ImGui::Text("12,345 bytes");
+				ImGui::EndGroup();
+				ImGui::BeginGroup();
+				ImGui::Selectable("Hello.h", &selected[2]);   ImGui::SameLine(); ImGui::Text(" 2,345 bytes");
+				ImGui::EndGroup();
 			}
-			ImGui::SetScrollPosHere();
 			ImGui::EndChild();
-			//ImGui::PopStyleVar();
+
 			ImGui::End();
 		}
+
 		imguiEndFrame();
 
 		bgfx::submit(0);

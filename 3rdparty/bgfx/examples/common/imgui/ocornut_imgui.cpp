@@ -168,9 +168,9 @@ struct OcornutImguiContext
 		uint8_t* data;
 		int32_t width;
 		int32_t height;
-		void* font = ImGui::MemAlloc(_size);
-		memcpy(font, _data, _size);
-		io.Fonts->AddFontFromMemoryTTF(font, _size, _fontSize);
+		//void* font = ImGui::MemAlloc(_size);
+		//memcpy(font, _data, _size);
+		//io.Fonts->AddFontFromMemoryTTF(font, _size, _fontSize);
 
 		io.Fonts->GetTexDataAsRGBA32(&data, &width, &height);
 
