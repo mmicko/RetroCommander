@@ -119,6 +119,87 @@ int cmdMenu(CmdContext* /*_context*/, void* /*_userData*/, int /*_argc*/, char c
 	return 0;
 }
 
+struct file_descriptor
+{
+    std::string name;
+    bool is_dir;
+    bool is_reg;
+    size_t size;
+    std::string datetime;
+};
+
+// TODO: separate "view data" (selected) from "underlying data" (files)
+std::vector<file_descriptor> files;
+bool selected_l[150];
+
+void displayPanel()
+{
+    ImVec2 box0 = ImGui::GetWindowContentRegionMax();
+    box0.y = 15;
+    box0.x -= 5;
+    float loc[4];
+    ImGui::BeginChild("Sub0", box0, false);
+    ImGui::Columns(4);
+    ImGui::Text("Name"); loc[0] = ImGui::GetColumnOffset(); ImGui::NextColumn();
+    ImGui::Text("Ext");  loc[1] = ImGui::GetColumnOffset(); ImGui::NextColumn();
+    ImGui::Text("Size"); loc[2] = ImGui::GetColumnOffset(); ImGui::NextColumn();
+    ImGui::Text("Date"); loc[3] = ImGui::GetColumnOffset(); ImGui::NextColumn();
+    ImGui::Columns(1);
+    ImGui::EndChild();
+
+    ImVec2 box = ImGui::GetWindowContentRegionMax();
+    box.y -= 60 + 35;
+    box.x -= 5;
+    ImGui::BeginChild("Sub1", box, false);
+    ImGui::Columns(4);
+    ImGui::SetColumnOffset(0,loc[0]);
+    ImGui::SetColumnOffset(1,loc[1]);
+    ImGui::SetColumnOffset(2,loc[2]);
+    ImGui::SetColumnOffset(3,loc[3]);
+
+    int i = 0;
+    for (std::vector<file_descriptor>::iterator it = files.begin(); it != files.end(); ++it)
+    {
+
+        char buf[100];
+        sprintf(buf, "%s", (*it).name.c_str());
+        ImGui::Selectable(buf, &selected_l[i]); ImGui::NextColumn();
+        ImGui::Text("");   ImGui::NextColumn();
+        if ((*it).is_dir) {
+            ImGui::Text("<DIR>");  ImGui::NextColumn();
+        }
+        else {
+            ImGui::Text("%d", (*it).size);  ImGui::NextColumn();
+        }
+        ImGui::Text("%s", (*it).datetime.c_str());  ImGui::NextColumn();
+        i++;
+    }
+    ImGui::EndChild();
+
+    ImVec2 box2 = ImGui::GetWindowContentRegionMax();
+    box2.y = 50;
+    box2.x -= 5;
+
+    ImGui::BeginChild("Sub3", box2, false);
+    ImGui::Columns(4);
+    ImGui::Text("Name");  ImGui::NextColumn();
+    ImGui::Text("Ext");   ImGui::NextColumn();
+    ImGui::Text("Size");  ImGui::NextColumn();
+    ImGui::Text("Date");  ImGui::NextColumn();
+
+    ImGui::Text("Name");  ImGui::NextColumn();
+    ImGui::Text("Ext");   ImGui::NextColumn();
+    ImGui::Text("Size");  ImGui::NextColumn();
+    ImGui::Text("Date");  ImGui::NextColumn();
+    ImGui::Text("Name");  ImGui::NextColumn();
+    ImGui::Text("Ext");   ImGui::NextColumn();
+    ImGui::Text("Size");  ImGui::NextColumn();
+    ImGui::Text("Date");  ImGui::NextColumn();
+
+    ImGui::Columns(1);
+    ImGui::EndChild();
+}
+
 int _main_(int /*_argc*/, char** /*_argv*/)
 {
 	uint32_t width = 1280;
@@ -201,20 +282,8 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	cmdAdd("menu", cmdMenu);
 	
-	static bool selected_l[150];
 	for (int i = 0; i < 150; i++) selected_l[i] = false;
-	
-	struct file_descriptor
-	{
-		std::string name;
-		bool is_dir;
-		bool is_reg;
-		size_t size;
-		std::string datetime;
-	};
-
-	std::vector<file_descriptor> files;
-	
+		
 	struct dirent* dirent;
 	struct stat stat_info;
 	
@@ -268,144 +337,13 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		ImGui::SetNextWindowPos(ImVec2(0, 19));
 		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
 		if (ImGui::Begin("Left Panel", NULL, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
-		{
-			ImVec2 box0 = ImGui::GetWindowContentRegionMax();
-			box0.y = 15;
-			box0.x -= 5;
-			float loc[4];
-			ImGui::BeginChild("Sub0", box0, false);
-			ImGui::Columns(4);
-			ImGui::Text("Name"); loc[0] = ImGui::GetColumnOffset(); ImGui::NextColumn();
-			ImGui::Text("Ext");  loc[1] = ImGui::GetColumnOffset(); ImGui::NextColumn();
-			ImGui::Text("Size"); loc[2] = ImGui::GetColumnOffset(); ImGui::NextColumn();
-			ImGui::Text("Date"); loc[3] = ImGui::GetColumnOffset(); ImGui::NextColumn();
-			ImGui::Columns(1);
-			ImGui::EndChild();
-
-			ImVec2 box = ImGui::GetWindowContentRegionMax();
-			box.y -= 60 + 35;
-			box.x -= 5;
-			ImGui::BeginChild("Sub1", box, false);
-			ImGui::Columns(4);
-			ImGui::SetColumnOffset(0,loc[0]);
-			ImGui::SetColumnOffset(1,loc[1]);
-			ImGui::SetColumnOffset(2,loc[2]);
-			ImGui::SetColumnOffset(3,loc[3]);
-			
-			int i = 0;
-			for (std::vector<file_descriptor>::iterator it = files.begin(); it != files.end(); ++it)
-			{
-
-				char buf[100];
-				sprintf(buf, "%s", (*it).name.c_str());
-				ImGui::Selectable(buf, &selected_l[i]); ImGui::NextColumn();
-				ImGui::Text("");   ImGui::NextColumn();
-				if ((*it).is_dir) {
-					ImGui::Text("<DIR>");  ImGui::NextColumn();
-				}
-				else {
-					ImGui::Text("%d", (*it).size);  ImGui::NextColumn();
-				}
-				ImGui::Text("%s", (*it).datetime.c_str());  ImGui::NextColumn();
-				i++;
-			}
-			ImGui::EndChild();
-
-			ImVec2 box2 = ImGui::GetWindowContentRegionMax();
-			box2.y = 50;
-			box2.x -= 5;
-			
-			ImGui::BeginChild("Sub3", box2, false);
-			ImGui::Columns(4);
-			ImGui::Text("Name");  ImGui::NextColumn();
-			ImGui::Text("Ext");   ImGui::NextColumn();
-			ImGui::Text("Size");  ImGui::NextColumn();
-			ImGui::Text("Date");  ImGui::NextColumn();
-
-			ImGui::Text("Name");  ImGui::NextColumn();
-			ImGui::Text("Ext");   ImGui::NextColumn();
-			ImGui::Text("Size");  ImGui::NextColumn();
-			ImGui::Text("Date");  ImGui::NextColumn();
-			ImGui::Text("Name");  ImGui::NextColumn();
-			ImGui::Text("Ext");   ImGui::NextColumn();
-			ImGui::Text("Size");  ImGui::NextColumn();
-			ImGui::Text("Date");  ImGui::NextColumn();
-
-			ImGui::Columns(1);
-			ImGui::EndChild();
-		}
+            displayPanel();
         ImGui::End();
 
 		ImGui::SetNextWindowPos(ImVec2(width / 2, 19));
 		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
 		if (ImGui::Begin("Right Panel", NULL, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
-		{
-			ImVec2 box0 = ImGui::GetWindowContentRegionMax();
-			box0.y = 15;
-			box0.x -= 5;
-			float loc[4];
-			ImGui::BeginChild("Sub0", box0, false);
-			ImGui::Columns(4);
-			ImGui::Text("Name"); loc[0] = ImGui::GetColumnOffset(); ImGui::NextColumn();
-			ImGui::Text("Ext");  loc[1] = ImGui::GetColumnOffset(); ImGui::NextColumn();
-			ImGui::Text("Size"); loc[2] = ImGui::GetColumnOffset(); ImGui::NextColumn();
-			ImGui::Text("Date"); loc[3] = ImGui::GetColumnOffset(); ImGui::NextColumn();
-			ImGui::Columns(1);
-			ImGui::EndChild();
-
-			ImVec2 box = ImGui::GetWindowContentRegionMax();
-			box.y -= 60 + 35;
-			box.x -= 5;
-			ImGui::BeginChild("Sub1", box, false);
-			ImGui::Columns(4);
-			ImGui::SetColumnOffset(0, loc[0]);
-			ImGui::SetColumnOffset(1, loc[1]);
-			ImGui::SetColumnOffset(2, loc[2]);
-			ImGui::SetColumnOffset(3, loc[3]);
-
-			int i = 0;
-			for (std::vector<file_descriptor>::iterator it = files.begin(); it != files.end(); ++it)
-			{
-
-				char buf[100];
-				sprintf(buf, "%s", (*it).name.c_str());
-				ImGui::Selectable(buf, &selected_l[i]); ImGui::NextColumn();
-				ImGui::Text("");   ImGui::NextColumn();
-				if ((*it).is_dir) {
-					ImGui::Text("<DIR>");  ImGui::NextColumn();
-				}
-				else {
-					ImGui::Text("%d", (*it).size);  ImGui::NextColumn();
-				}
-				ImGui::Text("%s", (*it).datetime.c_str());  ImGui::NextColumn();
-				i++;
-			}
-			ImGui::EndChild();
-
-			ImVec2 box2 = ImGui::GetWindowContentRegionMax();
-			box2.y = 50;
-			box2.x -= 5;
-
-			ImGui::BeginChild("Sub3", box2, false);
-			ImGui::Columns(4);
-			ImGui::Text("Name");  ImGui::NextColumn();
-			ImGui::Text("Ext");   ImGui::NextColumn();
-			ImGui::Text("Size");  ImGui::NextColumn();
-			ImGui::Text("Date");  ImGui::NextColumn();
-
-			ImGui::Text("Name");  ImGui::NextColumn();
-			ImGui::Text("Ext");   ImGui::NextColumn();
-			ImGui::Text("Size");  ImGui::NextColumn();
-			ImGui::Text("Date");  ImGui::NextColumn();
-			ImGui::Text("Name");  ImGui::NextColumn();
-			ImGui::Text("Ext");   ImGui::NextColumn();
-			ImGui::Text("Size");  ImGui::NextColumn();
-			ImGui::Text("Date");  ImGui::NextColumn();
-
-			ImGui::Columns(1);
-			ImGui::EndChild();
-
-		}
+            displayPanel();
         ImGui::End();
 
 		imguiEndFrame();
