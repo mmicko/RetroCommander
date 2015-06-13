@@ -236,13 +236,18 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			box.y -= 60 + 35;
 			box.x -= 5;
 			ImGui::BeginChild("Sub1", box, border);
+			ImGui::Columns(4);
 
 			for (int i = 0; i < 150; i++)
 			{
+
 				static bool selected[3] = { false, false, false };
 				char buf[100];
-				sprintf(buf, "file_%d.c     ", i);
-				ImGui::Selectable(buf, &selected[0]);
+				sprintf(buf, "file_%d", i);
+				ImGui::Selectable(buf, &selected[0]); ImGui::NextColumn();
+				ImGui::Text("c");   ImGui::NextColumn();
+				ImGui::Text("%d", 23200 % (i+1));  ImGui::NextColumn();
+				ImGui::Text("2015-06-01");  ImGui::NextColumn();
 			}
 			ImGui::EndChild();
 
