@@ -51,6 +51,7 @@ includedirs {
 	path.join(BGFX_DIR, "include"),
 	path.join(BGFX_DIR, "3rdparty"),
 	path.join(BGFX_DIR, "examples/common"),
+	path.join(BGFX_DIR, "examples/common/entry"),
 }
 
 files {

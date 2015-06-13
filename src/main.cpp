@@ -8,9 +8,16 @@
 #include <bgfx.h>
 #include <bx/uint32_t.h>
 #include "imgui/imgui.h"
+#include "cmd.h"
+#include "input.h"
 
 void displayMainMenu()
 {
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.00f, 0.56f, 0.56f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.25f, 0.25f, 1.00f));
+	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.25f, 0.25f, 1.00f));
+	ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.25f, 0.25f, 1.00f));
+
 	if (ImGui::BeginMainMenuBar())
 	{
 		if (ImGui::BeginMenu("Left"))
@@ -90,6 +97,22 @@ void displayMainMenu()
 		}
 		ImGui::EndMainMenuBar();
 	}
+	ImGui::PopStyleColor();
+	ImGui::PopStyleColor();
+	ImGui::PopStyleColor();
+	ImGui::PopStyleColor();
+}
+
+static const InputBinding s_bindings[] =
+{
+	{ entry::Key::F10,   entry::Modifier::None, 1, NULL, "exit" },
+	{ entry::Key::F9,    entry::Modifier::None, 1, NULL, "menu" },
+	INPUT_BINDING_END
+};
+
+int cmdMenu(CmdContext* /*_context*/, void* /*_userData*/, int /*_argc*/, char const* const* /*_argv*/)
+{
+	return 0;
 }
 
 int _main_(int /*_argc*/, char** /*_argv*/)
@@ -120,12 +143,10 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		, 1.0f
 		, 0
 		);
+
 	ImGuiStyle& style = ImGui::GetStyle(); // this struct has the colors
 	style.WindowRounding = 0.0f;
 	style.FrameRounding = 0.0f;
-	//style.Colors[ImGuiCol_Text] = ImColor(255, 255, 255);
-	//style.Colors[ImGuiCol_MenuBarBg] = ImColor(0, 0, 255);
-
 
 	style.Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.00f, 1.00f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
@@ -168,6 +189,14 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
 	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.00f, 0.00f, 1.00f, 0.35f);
 	style.Colors[ImGuiCol_TooltipBg] = ImVec4(0.05f, 0.05f, 0.10f, 0.90f);
+
+
+
+	inputRemoveBindings("bindings");
+	inputAddBindings("bindings", s_bindings);
+
+	cmdAdd("menu", cmdMenu);
+
 	while (!entry::processEvents(width, height, debug, reset, &mouseState))
 	{
 		// Set view 0 default viewport.
@@ -182,17 +211,8 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			, height
 			);
 		
-		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.00f, 0.56f, 0.56f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.25f, 0.25f, 1.00f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.25f, 0.25f, 1.00f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.25f, 0.25f, 1.00f));
 		
 		displayMainMenu();
-
-		ImGui::PopStyleColor();
-		ImGui::PopStyleColor();
-		ImGui::PopStyleColor();
-		ImGui::PopStyleColor();
 
 		ImGui::SetNextWindowPos(ImVec2(0, 19));
 		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
