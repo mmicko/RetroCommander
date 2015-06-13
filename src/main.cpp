@@ -126,11 +126,12 @@ struct file_descriptor
     bool is_reg;
     size_t size;
     std::string datetime;
+
+    // TODO: separate "view data" (selected) from "underlying data" (files)
+    bool is_selected; 
 };
 
-// TODO: separate "view data" (selected) from "underlying data" (files)
 std::vector<file_descriptor> files;
-bool selected_l[150];
 
 void displayPanel()
 {
@@ -160,10 +161,25 @@ void displayPanel()
     int i = 0;
     for (std::vector<file_descriptor>::iterator it = files.begin(); it != files.end(); ++it)
     {
+        file_descriptor* fd = &(*it);
 
         char buf[100];
-        sprintf(buf, "%s", (*it).name.c_str());
-        ImGui::Selectable(buf, &selected_l[i]); ImGui::NextColumn();
+        sprintf(buf, "%s", fd->name.c_str());
+        if (ImGui::Selectable(buf, fd->is_selected)) 
+        {
+            if (ImGui::GetIO().KeyCtrl)
+            {
+                fd->is_selected ^= 1;
+            }
+            else
+            {
+                for (std::vector<file_descriptor>::iterator it2 = files.begin(); it2 != files.end(); ++it2)
+                    (*it2).is_selected = false;
+                fd->is_selected = true;
+            }
+        } 
+        ImGui::NextColumn();
+
         ImGui::Text("");   ImGui::NextColumn();
         if ((*it).is_dir) {
             ImGui::Text("<DIR>");  ImGui::NextColumn();
@@ -282,8 +298,6 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	cmdAdd("menu", cmdMenu);
 	
-	for (int i = 0; i < 150; i++) selected_l[i] = false;
-		
 	struct dirent* dirent;
 	struct stat stat_info;
 	
@@ -311,6 +325,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			const struct tm* time = localtime(&stat_info.st_mtime);
 			strftime(datetime, 100, "%c", time);
 			file.datetime = std::string(datetime);
+            file.is_selected = false;
 			files.push_back(file);
 		}
 	}
