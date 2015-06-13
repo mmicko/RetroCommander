@@ -991,7 +991,8 @@ enum ImGuiSelectableFlags_
 {
     ImGuiSelectableFlags_MenuItem        = (1 << 0),
     ImGuiSelectableFlags_DontClosePopups = (1 << 1),
-    ImGuiSelectableFlags_Disabled        = (1 << 2)
+    ImGuiSelectableFlags_Disabled        = (1 << 2),
+    ImGuiSelectableFlags_AllColumns      = (1 << 3)
 };
 
 
@@ -7400,6 +7401,9 @@ static bool SelectableEx(const char* label, bool selected, const ImVec2& size_ar
     if (window->SkipItems)
         return false;
 
+    if ((flags & ImGuiSelectableFlags_AllColumns) && window->DC.ColumnsCount > 1)
+        PopClipRect();
+
     const ImGuiStyle& style = g.Style;
     ImGuiID id = window->GetID(label);
     ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
@@ -7411,7 +7415,8 @@ static bool SelectableEx(const char* label, bool selected, const ImVec2& size_ar
 
     // Fill horizontal space.
     ImVec2 window_padding = window->WindowPadding();
-    float w_draw = ImMax(label_size.x, window->Pos.x + ImGui::GetContentRegionMax().x - window_padding.x - window->DC.CursorPos.x);
+    float max_x = (flags & ImGuiSelectableFlags_AllColumns) ? ImGui::GetWindowContentRegionMax().x : ImGui::GetContentRegionMax().x;
+    float w_draw = ImMax(label_size.x, window->Pos.x + max_x - window_padding.x - window->DC.CursorPos.x);
     ImVec2 size_draw(size_draw_arg.x != 0.0f ? size_draw_arg.x : w_draw, size_draw_arg.y != 0.0f ? size_draw_arg.y : size.y);
     ImRect bb_with_spacing(pos, pos + size_draw);
     if (size_draw_arg.x == 0.0f)
@@ -7427,7 +7432,11 @@ static bool SelectableEx(const char* label, bool selected, const ImVec2& size_ar
     bb_with_spacing.Max.x += spacing_R;
     bb_with_spacing.Max.y += spacing_D;
     if (!ItemAdd(bb_with_spacing, &id))
+    {
+        if ((flags & ImGuiSelectableFlags_AllColumns) && window->DC.ColumnsCount > 1)
+            PushColumnClipRect();
         return false;
+    }
 
     bool hovered, held;
     bool pressed = ButtonBehavior(bb_with_spacing, id, &hovered, &held, true, ((flags & ImGuiSelectableFlags_MenuItem) ? ImGuiButtonFlags_PressedOnClick : 0) | ((flags & ImGuiSelectableFlags_Disabled) ? ImGuiButtonFlags_Disabled : 0));
@@ -7440,6 +7449,13 @@ static bool SelectableEx(const char* label, bool selected, const ImVec2& size_ar
         const ImU32 col = window->Color((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
         RenderFrame(bb_with_spacing.Min, bb_with_spacing.Max, col, false, style.FrameRounding);
     }
+
+    if ((flags & ImGuiSelectableFlags_AllColumns) && window->DC.ColumnsCount > 1)
+    {
+        PushColumnClipRect();
+        bb_with_spacing.Max.x -= (ImGui::GetContentRegionMax().x - max_x);
+    }
+
     if (flags & ImGuiSelectableFlags_Disabled) ImGui::PushStyleColor(ImGuiCol_Text, g.Style.Colors[ImGuiCol_TextDisabled]);
     RenderTextClipped(bb.Min, bb_with_spacing.Max, label, NULL, &label_size);
     if (flags & ImGuiSelectableFlags_Disabled) ImGui::PopStyleColor();
@@ -7460,6 +7476,21 @@ bool ImGui::Selectable(const char* label, bool selected, const ImVec2& size_arg)
 bool ImGui::Selectable(const char* label, bool* p_selected, const ImVec2& size_arg)
 {
     if (SelectableEx(label, *p_selected, size_arg, size_arg, 0))
+    {
+        *p_selected = !*p_selected;
+        return true;
+    }
+    return false;
+}
+
+bool ImGui::SelectableAllColumns(const char* label, bool selected, const ImVec2& size_arg)
+{
+    return SelectableEx(label, selected, size_arg, size_arg, ImGuiSelectableFlags_AllColumns);
+}
+
+bool ImGui::SelectableAllColumns(const char* label, bool* p_selected, const ImVec2& size_arg)
+{
+    if (SelectableEx(label, *p_selected, size_arg, size_arg, ImGuiSelectableFlags_AllColumns))
     {
         *p_selected = !*p_selected;
         return true;

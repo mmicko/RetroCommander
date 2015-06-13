@@ -147,6 +147,7 @@ void displayPanel()
     ImGui::Text("Date"); loc[3] = ImGui::GetColumnOffset(); ImGui::NextColumn();
     ImGui::Columns(1);
     ImGui::EndChild();
+    ImGui::Separator();
 
     ImVec2 box = ImGui::GetWindowContentRegionMax();
     box.y -= 60 + 35;
@@ -165,7 +166,7 @@ void displayPanel()
 
         char buf[100];
         sprintf(buf, "%s", fd->name.c_str());
-        if (ImGui::Selectable(buf, fd->is_selected)) 
+        if (ImGui::SelectableAllColumns(buf, fd->is_selected)) 
         {
             if (ImGui::GetIO().KeyCtrl)
             {
