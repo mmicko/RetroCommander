@@ -3,7 +3,9 @@
  * License: http://www.opensource.org/licenses/BSD-3-Clause
  */
 
+#include <string>
 #include <stdio.h>
+#include <stdlib.h>
 #include "common.h"
 #include <bgfx.h>
 #include <bx/uint32_t.h>
@@ -11,10 +13,10 @@
 #include "cmd.h"
 #include "input.h"
 #include <dirent.h>
-#include <string>
 #include <vector>
 #include <sys/stat.h>
 #include <time.h>
+#include <direct.h>
 
 void displayMainMenu()
 {
@@ -159,10 +161,7 @@ void readFiles(const char *path)
 	{
 		struct dirent* dirent;
 		struct stat stat_info;
-		char buffer[1024];
-		//wcstombs(buffer, directory->wdirp->patt, sizeof(buffer));
-		fullpath = std::string(buffer);
-		strreplace(fullpath, "*", "");
+		fullpath = std::string(path) + "\\";
 		while ((dirent = readdir(directory)) != NULL){
 			file_descriptor file;
 			file.size = 0;
@@ -362,8 +361,10 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	inputAddBindings("bindings", s_bindings);
 
 	cmdAdd("menu", cmdMenu);
+	char cwd[1024];
+	getcwd(cwd, sizeof(cwd));
+	readFiles(cwd);
 
-	readFiles("..");
 	while (!entry::processEvents(width, height, debug, reset, &mouseState))
 	{
 		// Set view 0 default viewport.
