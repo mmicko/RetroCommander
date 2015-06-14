@@ -219,40 +219,41 @@ void displayPanel()
     ImGui::SetColumnOffset(2,loc[2]);
     ImGui::SetColumnOffset(3,loc[3]);
 
+    std::string open_dir;
+
 	for (std::vector<file_descriptor>::iterator it = files.begin(); it != files.end(); ++it)
     {
         file_descriptor* fd = &(*it);
 
         char buf[100];
         sprintf(buf, "%s", fd->name.c_str());
-        if (ImGui::SelectableAllColumns(buf, fd->is_selected))
+
+        bool clicked = ImGui::SelectableAllColumns(buf, fd->is_selected);
+        bool hovered = ImGui::IsItemHovered();
+		if (clicked && ImGui::GetIO().KeyCtrl)
         {
-			if (ImGui::GetIO().KeyCtrl)
-            {
-                fd->is_selected ^= 1;
-            }
-			else if (ImGui::IsMouseDoubleClicked(0))
-			{
-				if ((*it).is_dir) {
-					fullpath += fd->name.c_str();
-					readFiles(fullpath.c_str());
-				}
-			}
-            else
-            {
-                for (std::vector<file_descriptor>::iterator it2 = files.begin(); it2 != files.end(); ++it2)
-                    (*it2).is_selected = false;
-                fd->is_selected = true;			
-				/*if ((*it).is_dir) {
-					fullpath += fd->name.c_str();
-					readFiles(fullpath.c_str());
-				}*/
-				break;
-            }
+            fd->is_selected ^= 1;
+        }
+		else if (hovered && ImGui::IsMouseDoubleClicked(0))
+		{
+			if ((*it).is_dir)
+                open_dir = fullpath + fd->name;
+		}
+        else if (clicked)
+        {
+            for (std::vector<file_descriptor>::iterator it2 = files.begin(); it2 != files.end(); ++it2)
+                (*it2).is_selected = false;
+            fd->is_selected = true;			
+			/*if ((*it).is_dir) {
+				fullpath += fd->name.c_str();
+				readFiles(fullpath.c_str());
+			}*/
+			//break;
         }
         ImGui::NextColumn();
 
-        ImGui::Text("");   ImGui::NextColumn();
+        ImGui::Text(""); ImGui::NextColumn();
+        
         if ((*it).is_dir) {
             ImGui::Text("<DIR>");  ImGui::NextColumn();
         }
@@ -285,6 +286,10 @@ void displayPanel()
 
     ImGui::Columns(1);
     ImGui::EndChild();
+    
+    // process open directory after we are done iterating our files for the frame
+    if (!open_dir.empty())
+        readFiles(open_dir.c_str());
 }
 
 int _main_(int /*_argc*/, char** /*_argv*/)
@@ -382,7 +387,6 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			, height
 			);
 
-
 		displayMainMenu();
 		ImGui::SetNextWindowPos(ImVec2(0, 19));
 		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
@@ -395,6 +399,9 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		if (ImGui::Begin("Right Panel", NULL, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
             displayPanel();
         ImGui::End();
+
+        // imgui test code
+        //ImGui::ShowTestWindow(NULL);
 
 		imguiEndFrame();
 
