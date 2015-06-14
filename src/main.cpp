@@ -219,7 +219,7 @@ void displayPanel()
     ImGui::SetColumnOffset(2,loc[2]);
     ImGui::SetColumnOffset(3,loc[3]);
 
-    for (std::vector<file_descriptor>::iterator it = files.begin(); it != files.end(); ++it)
+	for (std::vector<file_descriptor>::iterator it = files.begin(); it != files.end(); ++it)
     {
         file_descriptor* fd = &(*it);
 
@@ -227,23 +227,26 @@ void displayPanel()
         sprintf(buf, "%s", fd->name.c_str());
         if (ImGui::SelectableAllColumns(buf, fd->is_selected))
         {
-            if (ImGui::GetIO().KeyCtrl)
+			if (ImGui::GetIO().KeyCtrl)
             {
                 fd->is_selected ^= 1;
             }
 			else if (ImGui::IsMouseDoubleClicked(0))
 			{
-				readFiles("..");
+				if ((*it).is_dir) {
+					fullpath += fd->name.c_str();
+					readFiles(fullpath.c_str());
+				}
 			}
             else
             {
                 for (std::vector<file_descriptor>::iterator it2 = files.begin(); it2 != files.end(); ++it2)
                     (*it2).is_selected = false;
-                fd->is_selected = true;
-				if ((*it).is_dir) {
+                fd->is_selected = true;			
+				/*if ((*it).is_dir) {
 					fullpath += fd->name.c_str();
 					readFiles(fullpath.c_str());
-				}
+				}*/
 				break;
             }
         }
