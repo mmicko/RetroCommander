@@ -122,6 +122,7 @@ int cmdMenu(CmdContext* /*_context*/, void* /*_userData*/, int /*_argc*/, char c
 struct file_descriptor
 {
     std::string name;
+	std::string path;
     bool is_dir;
     bool is_reg;
     size_t size;
@@ -131,7 +132,69 @@ struct file_descriptor
     bool is_selected; 
 };
 
+
+int strreplace(std::string &str, const std::string& search, const std::string& replace)
+{
+	int searchlen = search.length();
+	int replacelen = replace.length();
+	int matches = 0;
+
+	for (int curindex = str.find(search, 0); curindex != -1; curindex = str.find(search, curindex + replacelen))
+	{
+		matches++;
+		str.erase(curindex, searchlen).insert(curindex, replace);
+	}
+	return matches;
+}
+
 std::vector<file_descriptor> files;
+std::string  fullpath;
+
+void readFiles(const char *path)
+{
+	files.clear();
+	DIR* directory = opendir(path);
+	if (directory != NULL)
+	{
+		struct dirent* dirent;
+		struct stat stat_info;
+		char buffer[1024];
+		wcstombs(buffer, directory->wdirp->patt, sizeof(buffer));
+		fullpath = std::string(buffer);
+		strreplace(fullpath, "*", "");
+		while ((dirent = readdir(directory)) != NULL){
+			file_descriptor file;
+			file.size = 0;
+			file.is_dir = false;
+			file.is_reg = false;
+			if (dirent->d_namlen > 0)
+				file.name = std::string(dirent->d_name);
+
+			file.path = fullpath + file.name;
+			errno_t err;
+			int s = stat(file.path.c_str(), &stat_info);
+			_get_errno(&err);			
+			if (s != -1)
+			{
+				if (S_ISREG(stat_info.st_mode)){
+					file.is_reg = true;
+				}
+				if (S_ISDIR(stat_info.st_mode)){
+					file.is_dir = true;
+				}
+				file.size = stat_info.st_size;
+				char datetime[100];
+				const struct tm* time = localtime(&stat_info.st_mtime);
+				strftime(datetime, 100, "%c", time);
+				file.datetime = std::string(datetime);
+			}
+			file.is_selected = false;
+			files.push_back(file);
+		}
+	}
+
+	closedir(directory);
+}
 
 void displayPanel()
 {
@@ -159,7 +222,6 @@ void displayPanel()
     ImGui::SetColumnOffset(2,loc[2]);
     ImGui::SetColumnOffset(3,loc[3]);
 
-    int i = 0;
     for (std::vector<file_descriptor>::iterator it = files.begin(); it != files.end(); ++it)
     {
         file_descriptor* fd = &(*it);
@@ -172,11 +234,20 @@ void displayPanel()
             {
                 fd->is_selected ^= 1;
             }
+			else if (ImGui::IsMouseDoubleClicked(0))
+			{
+				readFiles("..");				
+			}
             else
             {
                 for (std::vector<file_descriptor>::iterator it2 = files.begin(); it2 != files.end(); ++it2)
                     (*it2).is_selected = false;
                 fd->is_selected = true;
+				if ((*it).is_dir) {
+					fullpath += fd->name.c_str();
+					readFiles(fullpath.c_str());
+				}
+				break;
             }
         } 
         ImGui::NextColumn();
@@ -189,7 +260,6 @@ void displayPanel()
             ImGui::Text("%d", (*it).size);  ImGui::NextColumn();
         }
         ImGui::Text("%s", (*it).datetime.c_str());  ImGui::NextColumn();
-        i++;
     }
     ImGui::EndChild();
 
@@ -233,10 +303,6 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	imguiCreate();
 
 	entry::MouseState mouseState;
-
-	bool opened_left = true;
-	bool opened_right = true;
-	bool opened = true;
 
 	// Set view 0 clear state.
 	bgfx::setViewClear(0
@@ -299,41 +365,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	cmdAdd("menu", cmdMenu);
 	
-	struct dirent* dirent;
-	struct stat stat_info;
-	
-	DIR* directory = opendir(".");
-	if (directory != NULL)
-	{
-		while ((dirent = readdir(directory)) != NULL){
-			file_descriptor file;
-			file.size = 0;
-			file.is_dir = false;
-			file.is_reg = false;
-			if (dirent->d_namlen > 0)
-				file.name = std::string(dirent->d_name);
-			if (stat(dirent->d_name, &stat_info) != -1)
-			{
-				if (S_ISREG(stat_info.st_mode)){
-					file.is_reg = true;
-				}
-				if (S_ISDIR(stat_info.st_mode)){
-					file.is_dir = true;
-				}
-				file.size = stat_info.st_size;
-			}
-			char datetime[100];
-			const struct tm* time = localtime(&stat_info.st_mtime);
-			strftime(datetime, 100, "%c", time);
-			file.datetime = std::string(datetime);
-            file.is_selected = false;
-			files.push_back(file);
-		}
-	}
-
-	closedir(directory);
-
-
+	readFiles("c:\\buildtools\\src\\"); 
 	while (!entry::processEvents(width, height, debug, reset, &mouseState))
 	{
 		// Set view 0 default viewport.
@@ -352,7 +384,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		displayMainMenu();
 		ImGui::SetNextWindowPos(ImVec2(0, 19));
 		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));
-		if (ImGui::Begin("Left Panel", NULL, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
+		if (ImGui::Begin(fullpath.c_str(), NULL, ImVec2(width / 2, height - 19), 1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar))
             displayPanel();
         ImGui::End();
 
