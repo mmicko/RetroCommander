@@ -11,6 +11,7 @@
 #include "cmd.h"
 #include "input.h"
 #include <dirent.h>
+#include <string>
 #include <vector>
 #include <sys/stat.h>
 #include <time.h>
@@ -129,7 +130,7 @@ struct file_descriptor
     std::string datetime;
 
     // TODO: separate "view data" (selected) from "underlying data" (files)
-    bool is_selected; 
+    bool is_selected;
 };
 
 
@@ -159,7 +160,7 @@ void readFiles(const char *path)
 		struct dirent* dirent;
 		struct stat stat_info;
 		char buffer[1024];
-		wcstombs(buffer, directory->wdirp->patt, sizeof(buffer));
+		//wcstombs(buffer, directory->wdirp->patt, sizeof(buffer));
 		fullpath = std::string(buffer);
 		strreplace(fullpath, "*", "");
 		while ((dirent = readdir(directory)) != NULL){
@@ -167,13 +168,10 @@ void readFiles(const char *path)
 			file.size = 0;
 			file.is_dir = false;
 			file.is_reg = false;
-			if (dirent->d_namlen > 0)
-				file.name = std::string(dirent->d_name);
+			file.name = std::string(dirent->d_name);
 
 			file.path = fullpath + file.name;
-			errno_t err;
 			int s = stat(file.path.c_str(), &stat_info);
-			_get_errno(&err);			
 			if (s != -1)
 			{
 				if (S_ISREG(stat_info.st_mode)){
@@ -228,7 +226,7 @@ void displayPanel()
 
         char buf[100];
         sprintf(buf, "%s", fd->name.c_str());
-        if (ImGui::SelectableAllColumns(buf, fd->is_selected)) 
+        if (ImGui::SelectableAllColumns(buf, fd->is_selected))
         {
             if (ImGui::GetIO().KeyCtrl)
             {
@@ -236,7 +234,7 @@ void displayPanel()
             }
 			else if (ImGui::IsMouseDoubleClicked(0))
 			{
-				readFiles("..");				
+				readFiles("..");
 			}
             else
             {
@@ -249,7 +247,7 @@ void displayPanel()
 				}
 				break;
             }
-        } 
+        }
         ImGui::NextColumn();
 
         ImGui::Text("");   ImGui::NextColumn();
@@ -364,13 +362,13 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	inputAddBindings("bindings", s_bindings);
 
 	cmdAdd("menu", cmdMenu);
-	
-	readFiles("c:\\buildtools\\src\\"); 
+
+	readFiles("..");
 	while (!entry::processEvents(width, height, debug, reset, &mouseState))
 	{
 		// Set view 0 default viewport.
 		bgfx::setViewRect(0, 0, 0, width, height);
-		
+
 		imguiBeginFrame(mouseState.m_mx
 			, mouseState.m_my
 			, (mouseState.m_buttons[entry::MouseButton::Left] ? IMGUI_MBUT_LEFT : 0)
@@ -379,8 +377,8 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			, width
 			, height
 			);
-		
-		
+
+
 		displayMainMenu();
 		ImGui::SetNextWindowPos(ImVec2(0, 19));
 		ImGui::SetNextWindowSize(ImVec2(width / 2, height - 19));

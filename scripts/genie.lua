@@ -87,6 +87,22 @@ configuration { "vs20* or mingw*" }
 		"psapi",
 	}
 
+configuration { "linux or freebsd" }
+	links {
+		"Xrandr",
+		"Xinerama",
+		"Xi",
+		"Xxf86vm",
+		"Xcursor",
+	}
+
+configuration { "linux-* or freebsd" }
+	links {
+		"X11",
+		"GL",
+		"pthread",
+	}
+	
 configuration { "osx" }
 	files {
 		path.join(COMMANDER_DIR, "examples/common/**.mm"),
@@ -97,5 +113,3 @@ configuration { "osx" }
 	}
 
 configuration {}
-
-
