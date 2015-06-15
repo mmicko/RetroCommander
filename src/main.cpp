@@ -236,8 +236,12 @@ void displayPanel()
         }
 		else if (hovered && ImGui::IsMouseDoubleClicked(0))
 		{
-			if ((*it).is_dir)
-                open_dir = fullpath + fd->name;
+			if ((*it).is_dir) {
+				char full[_MAX_PATH];
+				open_dir = fullpath + fd->name;
+				_fullpath(full, open_dir.c_str(), _MAX_PATH);
+				open_dir = std::string(full);
+			}
 		}
         else if (clicked)
         {
