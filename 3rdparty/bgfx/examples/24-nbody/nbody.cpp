@@ -7,7 +7,7 @@
 #include "bgfx_utils.h"
 #include "imgui/imgui.h"
 #include "camera.h"
-#include <bgfx.h>
+#include <bgfx/bgfx.h>
 
 struct u_paramsDataStruct
 {
@@ -96,14 +96,16 @@ static const float s_quadVertices[] =
 
 static const uint16_t s_quadIndices[] = { 0, 1, 2, 2, 3, 0, };
 
-int _main_(int /*_argc*/, char** /*_argv*/)
+int _main_(int _argc, char** _argv)
 {
+	Args args(_argc, _argv);
+
 	uint32_t width  = 1280;
 	uint32_t height = 720;
 	uint32_t debug  = BGFX_DEBUG_TEXT;
 	uint32_t reset  = BGFX_RESET_VSYNC;
 
-	bgfx::init();
+	bgfx::init(args.m_type, args.m_pciId);
 	bgfx::reset(width, height, reset);
 
 	// Enable debug text.
@@ -219,8 +221,9 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 			imguiBeginFrame(mouseState.m_mx
 					, mouseState.m_my
-					, (mouseState.m_buttons[entry::MouseButton::Left  ] ? IMGUI_MBUT_LEFT  : 0)
-					| (mouseState.m_buttons[entry::MouseButton::Right ] ? IMGUI_MBUT_RIGHT : 0)
+					, (mouseState.m_buttons[entry::MouseButton::Left  ] ? IMGUI_MBUT_LEFT   : 0)
+					| (mouseState.m_buttons[entry::MouseButton::Right ] ? IMGUI_MBUT_RIGHT  : 0)
+					| (mouseState.m_buttons[entry::MouseButton::Middle] ? IMGUI_MBUT_MIDDLE : 0)
 					, mouseState.m_mz
 					, width
 					, height
@@ -294,7 +297,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 			// Set view and projection matrix for view 0.
 			const bgfx::HMD* hmd = bgfx::getHMD();
-			if (NULL != hmd && 0 != (hmd->flags & BGFX_HMD_RENDERING))
+			if (NULL != hmd && 0 != (hmd->flags & BGFX_HMD_RENDERING) )
 			{
 				float viewHead[16];
 				float eye[3] = {};
@@ -324,9 +327,6 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 				bgfx::setViewRect(0, 0, 0, width, height);
 			}
 
-			// Set vertex and fragment shaders.
-			bgfx::setProgram(particleProgram);
-
 			// Set vertex and index buffer.
 			bgfx::setVertexBuffer(vbh);
 			bgfx::setIndexBuffer(ibh);
@@ -342,11 +342,11 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			// Submit primitive for rendering to view 0.
 			if (useIndirect)
 			{
-				bgfx::submit(0, indirectBuffer, 0);
+				bgfx::submit(0, particleProgram, indirectBuffer, 0);
 			}
 			else
 			{
-				bgfx::submit(0);
+				bgfx::submit(0, particleProgram);
 			}
 
 			// Advance to next frame. Rendering thread will be kicked to
@@ -395,7 +395,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			bool blink = uint32_t(time*3.0f)&1;
 			bgfx::dbgTextPrintf(0, 5, blink ? 0x1f : 0x01, " Compute is not supported by GPU. ");
 
-			bgfx::submit(0);
+			bgfx::touch(0);
 			bgfx::frame();
 		}
 	}

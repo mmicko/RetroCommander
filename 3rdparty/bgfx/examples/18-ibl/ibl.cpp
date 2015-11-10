@@ -213,14 +213,16 @@ struct LightProbe
 	bgfx::TextureHandle m_texIrr;
 };
 
-int _main_(int /*_argc*/, char** /*_argv*/)
+int _main_(int _argc, char** _argv)
 {
+	Args args(_argc, _argv);
+
 	uint32_t width = 1280;
 	uint32_t height = 720;
 	uint32_t debug = BGFX_DEBUG_TEXT;
 	uint32_t reset = BGFX_RESET_VSYNC;
 
-	bgfx::init();
+	bgfx::init(args.m_type, args.m_pciId);
 	bgfx::reset(width, height, reset);
 
 	// Enable debug text.
@@ -309,8 +311,9 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	{
 		imguiBeginFrame(mouseState.m_mx
 			, mouseState.m_my
-			, (mouseState.m_buttons[entry::MouseButton::Left  ] ? IMGUI_MBUT_LEFT  : 0)
-			| (mouseState.m_buttons[entry::MouseButton::Right ] ? IMGUI_MBUT_RIGHT : 0)
+			, (mouseState.m_buttons[entry::MouseButton::Left  ] ? IMGUI_MBUT_LEFT   : 0)
+			| (mouseState.m_buttons[entry::MouseButton::Right ] ? IMGUI_MBUT_RIGHT  : 0)
+			| (mouseState.m_buttons[entry::MouseButton::Middle] ? IMGUI_MBUT_MIDDLE : 0)
 			, mouseState.m_mz
 			, width
 			, height
@@ -434,8 +437,8 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		s_uniforms.m_flags[1] = float(settings.m_specular);
 		s_uniforms.m_flags[2] = float(settings.m_diffuseIbl);
 		s_uniforms.m_flags[3] = float(settings.m_specularIbl);
-		memcpy(s_uniforms.m_rgbDiff, settings.m_rgbDiff, 3*sizeof(float));
-		memcpy(s_uniforms.m_rgbSpec, settings.m_rgbSpec, 3*sizeof(float));
+		memcpy(s_uniforms.m_rgbDiff, settings.m_rgbDiff, 3*sizeof(float) );
+		memcpy(s_uniforms.m_rgbSpec, settings.m_rgbSpec, 3*sizeof(float) );
 
 		s_uniforms.submitPerFrameUniforms();
 
@@ -480,11 +483,10 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 		// View 0.
 		bgfx::setTexture(0, s_texCube, lightProbes[currentLightProbe].m_tex);
-		bgfx::setProgram(programSky);
 		bgfx::setState(BGFX_STATE_RGB_WRITE|BGFX_STATE_ALPHA_WRITE);
 		screenSpaceQuad( (float)width, (float)height, true);
 		s_uniforms.submitPerDrawUniforms();
-		bgfx::submit(0);
+		bgfx::submit(0, programSky);
 
 		// View 1.
 		float mtx[16];

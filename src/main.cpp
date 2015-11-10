@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "common.h"
-#include <bgfx.h>
+#include <bgfx/bgfx.h>
 #include <bx/uint32_t.h>
 #include "imgui/imgui.h"
 #include "cmd.h"
@@ -221,14 +221,14 @@ void displayPanel()
 
     std::string open_dir;
 
-	for (std::vector<file_descriptor>::iterator it = files.begin(); it != files.end(); ++it)
+	for (auto it = files.begin(); it != files.end(); ++it)
     {
         file_descriptor* fd = &(*it);
 
         char buf[100];
         sprintf(buf, "%s", fd->name.c_str());
 
-        bool clicked = ImGui::SelectableAllColumns(buf, fd->is_selected);
+		bool clicked = false;// ImGui::SelectableAllColumns(buf, fd->is_selected);
         bool hovered = ImGui::IsItemHovered();
 		if (clicked && ImGui::GetIO().KeyCtrl)
         {
@@ -254,6 +254,7 @@ void displayPanel()
 			}*/
 			//break;
         }
+		ImGui::Text(buf);
         ImGui::NextColumn();
 
         ImGui::Text(""); ImGui::NextColumn();
@@ -409,7 +410,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 		imguiEndFrame();
 
-		bgfx::submit(0);
+		//bgfx::submit(0, NULL, 0);
 
 		bgfx::frame();
 	}

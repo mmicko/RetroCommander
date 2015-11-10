@@ -6,8 +6,10 @@
 #include <bx/timer.h>
 #include <bx/fpumath.h>
 #include "camera.h"
+#include "entry/entry.h"
 #include "entry/cmd.h"
 #include "entry/input.h"
+#include <bx/allocator.h>
 
 int cmdMove(CmdContext* /*_context*/, void* /*_userData*/, int _argc, char const* const* _argv)
 {
@@ -53,7 +55,7 @@ static void cmd(const void* _userData)
 	cmdExec( (const char*)_userData);
 }
 
-static const InputBinding s_camBindings[] = 
+static const InputBinding s_camBindings[] =
 {
 	{ entry::Key::KeyW,             entry::Modifier::None, 0, cmd, "move forward"  },
 	{ entry::Key::GamepadUp,        entry::Modifier::None, 0, cmd, "move forward"  },
@@ -63,7 +65,9 @@ static const InputBinding s_camBindings[] =
 	{ entry::Key::GamepadDown,      entry::Modifier::None, 0, cmd, "move backward" },
 	{ entry::Key::KeyD,             entry::Modifier::None, 0, cmd, "move right"    },
 	{ entry::Key::GamepadRight,     entry::Modifier::None, 0, cmd, "move right"    },
+	{ entry::Key::KeyQ,             entry::Modifier::None, 0, cmd, "move down"     },
 	{ entry::Key::GamepadShoulderL, entry::Modifier::None, 0, cmd, "move down"     },
+	{ entry::Key::KeyE,             entry::Modifier::None, 0, cmd, "move up"       },
 	{ entry::Key::GamepadShoulderR, entry::Modifier::None, 0, cmd, "move up"       },
 
 	INPUT_BINDING_END
@@ -258,7 +262,7 @@ struct Camera
 		bx::mtxLookAt(_viewMtx, m_eye, m_at, m_up);
 	}
 
-	void setPosition(float* _pos)
+	void setPosition(const float* _pos)
 	{
 		memcpy(m_eye, _pos, sizeof(float)*3);
 	}
@@ -267,7 +271,7 @@ struct Camera
 	{
 		m_verticalAngle = _verticalAngle;
 	}
-	
+
 	void setHorizontalAngle(float _horizontalAngle)
 	{
 		m_horizontalAngle = _horizontalAngle;
@@ -294,16 +298,16 @@ static Camera* s_camera = NULL;
 
 void cameraCreate()
 {
-	s_camera = new Camera;
+	s_camera = BX_NEW(entry::getAllocator(), Camera);
 }
 
 void cameraDestroy()
 {
-	delete s_camera;
+	BX_DELETE(entry::getAllocator(), s_camera);
 	s_camera = NULL;
 }
 
-void cameraSetPosition(float* _pos)
+void cameraSetPosition(const float* _pos)
 {
 	s_camera->setPosition(_pos);
 }
@@ -330,12 +334,12 @@ void cameraGetViewMtx(float* _viewMtx)
 
 void cameraGetPosition(float* _pos)
 {
-	memcpy(_pos, s_camera->m_eye, 3*sizeof(float));
+	memcpy(_pos, s_camera->m_eye, 3*sizeof(float) );
 }
 
 void cameraGetAt(float* _at)
 {
-	memcpy(_at, s_camera->m_at, 3*sizeof(float));
+	memcpy(_at, s_camera->m_at, 3*sizeof(float) );
 }
 
 void cameraUpdate(float _deltaTime, const entry::MouseState& _mouseState)

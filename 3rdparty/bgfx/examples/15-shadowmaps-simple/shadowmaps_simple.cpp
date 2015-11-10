@@ -9,7 +9,7 @@
 
 #include "common.h"
 
-#include <bgfx.h>
+#include <bgfx/bgfx.h>
 #include <bx/timer.h>
 #include <bx/readerwriter.h>
 #include <bx/fpumath.h>
@@ -66,14 +66,16 @@ static const uint16_t s_planeIndices[] =
 	1, 3, 2,
 };
 
-int _main_(int /*_argc*/, char** /*_argv*/)
+int _main_(int _argc, char** _argv)
 {
+	Args args(_argc, _argv);
+
 	uint32_t width = 1280;
 	uint32_t height = 720;
 	uint32_t debug = BGFX_DEBUG_TEXT;
 	uint32_t reset = BGFX_RESET_VSYNC;
 
-	bgfx::init();
+	bgfx::init(args.m_type, args.m_pciId);
 	bgfx::reset(width, height, reset);
 
 	bgfx::RendererType::Enum renderer = bgfx::getRendererType();
@@ -311,7 +313,6 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 		// Floor.
 		bx::mtxMul(lightMtx, mtxFloor, mtxShadow);
-		bgfx::setUniform(u_lightMtx, lightMtx);
 		uint32_t cached = bgfx::setTransform(mtxFloor);
 		for (uint32_t pass = 0; pass < 2; ++pass)
 		{
@@ -327,29 +328,31 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 						);
 			}
 			bgfx::setUniform(u_lightMtx, lightMtx);
-			bgfx::setProgram(st.m_program);
 			bgfx::setIndexBuffer(ibh);
 			bgfx::setVertexBuffer(vbh);
 			bgfx::setState(st.m_state);
-			bgfx::submit(st.m_viewId);
+			bgfx::submit(st.m_viewId, st.m_program);
 		}
 
 		// Bunny.
 		bx::mtxMul(lightMtx, mtxBunny, mtxShadow);
 		bgfx::setUniform(u_lightMtx, lightMtx);
 		meshSubmit(bunny, &state[0], 1, mtxBunny);
+		bgfx::setUniform(u_lightMtx, lightMtx);
 		meshSubmit(bunny, &state[1], 1, mtxBunny);
 
 		// Hollow cube.
 		bx::mtxMul(lightMtx, mtxHollowcube, mtxShadow);
 		bgfx::setUniform(u_lightMtx, lightMtx);
 		meshSubmit(hollowcube, &state[0], 1, mtxHollowcube);
+		bgfx::setUniform(u_lightMtx, lightMtx);
 		meshSubmit(hollowcube, &state[1], 1, mtxHollowcube);
 
 		// Cube.
 		bx::mtxMul(lightMtx, mtxCube, mtxShadow);
 		bgfx::setUniform(u_lightMtx, lightMtx);
 		meshSubmit(cube, &state[0], 1, mtxCube);
+		bgfx::setUniform(u_lightMtx, lightMtx);
 		meshSubmit(cube, &state[1], 1, mtxCube);
 
 		// Advance to next frame. Rendering thread will be kicked to

@@ -10,13 +10,20 @@
 #include <string.h> // memset
 #include <bx/bx.h>
 
-namespace bx { struct FileReaderI; struct FileWriterI; struct ReallocatorI; }
+namespace bx { struct FileReaderI; struct FileWriterI; struct AllocatorI; }
 
 extern "C" int _main_(int _argc, char** _argv);
 
 #define ENTRY_WINDOW_FLAG_NONE         UINT32_C(0x00000000)
 #define ENTRY_WINDOW_FLAG_ASPECT_RATIO UINT32_C(0x00000001)
 #define ENTRY_WINDOW_FLAG_FRAME        UINT32_C(0x00000002)
+
+#define ENTRY_IMPLEMENT_MAIN(_app) \
+			int _main_(int _argc, char** _argv) \
+			{ \
+				_app app; \
+				return entry::runApp(&app, _argc, _argv); \
+			}
 
 namespace entry
 {
@@ -181,6 +188,19 @@ namespace entry
 		};
 	};
 
+	struct Suspend
+	{
+		enum Enum
+		{
+			WillSuspend,
+			DidSuspend,
+			WillResume,
+			DidResume,
+
+			Count
+		};
+	};
+
 	const char* getName(Key::Enum _key);
 
 	struct MouseState
@@ -216,7 +236,7 @@ namespace entry
 
 	bx::FileReaderI* getFileReader();
 	bx::FileWriterI* getFileWriter();
-	bx::ReallocatorI* getAllocator();
+	bx::AllocatorI*  getAllocator();
 
 	WindowHandle createWindow(int32_t _x, int32_t _y, uint32_t _width, uint32_t _height, uint32_t _flags = ENTRY_WINDOW_FLAG_NONE, const char* _title = "");
 	void destroyWindow(WindowHandle _handle);
@@ -230,7 +250,9 @@ namespace entry
 	struct WindowState
 	{
 		WindowState()
-			: m_nwh(NULL)
+			: m_width(0)
+			, m_height(0)
+			, m_nwh(NULL)
 		{
 			m_handle.idx = UINT16_MAX;
 		}
@@ -243,6 +265,20 @@ namespace entry
 	};
 
 	bool processWindowEvents(WindowState& _state, uint32_t& _debug, uint32_t& _reset);
+
+	struct BX_NO_VTABLE AppI
+	{
+		virtual ~AppI() = 0;
+		virtual void init(int _argc, char** _argv) = 0;
+		virtual int  shutdown() = 0;
+		virtual bool update() = 0;
+	};
+
+	inline AppI::~AppI()
+	{
+	}
+
+	int runApp(AppI* _app, int _argc, char** _argv);
 
 } // namespace entry
 

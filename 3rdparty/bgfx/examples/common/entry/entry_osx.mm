@@ -9,7 +9,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#include <bgfxplatform.h>
+#include <bgfx/bgfxplatform.h>
 
 #include <bx/uint32_t.h>
 #include <bx/thread.h>
@@ -39,6 +39,8 @@
 - (void)windowWillClose:(NSNotification*)notification;
 - (BOOL)windowShouldClose:(NSWindow*)window;
 - (void)windowDidResize:(NSNotification*)notification;
+- (void)windowDidBecomeKey:(NSNotification *)notification;
+- (void)windowDidResignKey:(NSNotification *)notification;
 
 @end
 
@@ -271,7 +273,7 @@ namespace entry
 					{
 						// TODO: remove!
 						// Command + Left Mouse Button acts as middle! This just a temporary solution!
-						// This is becase the average OSX user doesn't have middle mouse click.
+						// This is because the average OSX user doesn't have middle mouse click.
 						MouseButton::Enum mb = ([event modifierFlags] & NSCommandKeyMask) ? MouseButton::Middle : MouseButton::Left;
 						m_eventQueue.postMouseEvent(s_defaultWindow, m_mx, m_my, m_scroll, mb, true);
 						break;
@@ -384,6 +386,18 @@ namespace entry
 			m_eventQueue.postMouseEvent(s_defaultWindow, m_mx, m_my, m_scroll, MouseButton::Right, false);
 		}
 
+		void windowDidBecomeKey()
+		{
+            m_eventQueue.postSuspendEvent(s_defaultWindow, Suspend::WillResume);
+			m_eventQueue.postSuspendEvent(s_defaultWindow, Suspend::DidResume);
+		}
+
+		void windowDidResignKey()
+		{
+            m_eventQueue.postSuspendEvent(s_defaultWindow, Suspend::WillSuspend);
+			m_eventQueue.postSuspendEvent(s_defaultWindow, Suspend::DidSuspend);
+		}
+
 		int32_t run(int _argc, char** _argv)
 		{
 			[NSApplication sharedApplication];
@@ -430,7 +444,7 @@ namespace entry
 			const float centerY = (screenRect.size.height - (float)ENTRY_DEFAULT_HEIGHT)*0.5f;
 
 			m_windowAlloc.alloc();
-			NSRect rect = NSMakeRect(centerX, centerY, (float)ENTRY_DEFAULT_WIDTH, (float)ENTRY_DEFAULT_HEIGHT);
+			NSRect rect = NSMakeRect(centerX, centerY, ENTRY_DEFAULT_WIDTH, ENTRY_DEFAULT_HEIGHT);
 			NSWindow* window = [[NSWindow alloc]
 				initWithContentRect:rect
 				styleMask:m_style
@@ -454,6 +468,9 @@ namespace entry
 
 			bx::Thread thread;
 			thread.init(mte.threadFunc, &mte);
+
+			WindowHandle handle = { 0 };
+			m_eventQueue.postSizeEvent(handle, ENTRY_DEFAULT_WIDTH, ENTRY_DEFAULT_HEIGHT);
 
 			while (!(m_exit = [dg applicationHasTerminated]) )
 			{
@@ -721,6 +738,20 @@ namespace entry
 	BX_UNUSED(notification);
 	using namespace entry;
 	s_ctx.windowDidResize();
+}
+
+- (void)windowDidBecomeKey:(NSNotification*)notification
+{
+    BX_UNUSED(notification);
+    using namespace entry;
+    s_ctx.windowDidBecomeKey();
+}
+
+- (void)windowDidResignKey:(NSNotification*)notification
+{
+    BX_UNUSED(notification);
+    using namespace entry;
+    s_ctx.windowDidResignKey();
 }
 
 @end

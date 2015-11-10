@@ -101,7 +101,6 @@ namespace bgfx { namespace gl
 			NSOpenGLView* glView = [[NSOpenGLView alloc] initWithFrame:glViewRect pixelFormat:pixelFormat];
 
 			[pixelFormat release];
-//			[glView setWantsBestResolutionOpenGLSurface:YES];
 			[nsWindow setContentView:glView];
 
 			NSOpenGLContext* glContext = [glView openGLContext];
@@ -135,6 +134,13 @@ namespace bgfx { namespace gl
 	{
 		BX_UNUSED(_width, _height);
 
+#if defined(MAC_OS_X_VERSION_MAX_ALLOWED) && (MAC_OS_X_VERSION_MAX_ALLOWED >= 1070)
+		bool hidpi = !!(_flags&BGFX_RESET_HIDPI);
+		NSOpenGLView* glView = (NSOpenGLView*)m_view;
+		if ([glView respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)])
+			[glView setWantsBestResolutionOpenGLSurface:hidpi];
+#endif // defined(MAC_OS_X_VERSION_MAX_ALLOWED) && (MAC_OS_X_VERSION_MAX_ALLOWED >= 1070)
+
 		bool vsync = !!(_flags&BGFX_RESET_VSYNC);
 		GLint interval = vsync ? 1 : 0;
 		NSOpenGLContext* glContext = (NSOpenGLContext*)m_context;
@@ -142,9 +148,15 @@ namespace bgfx { namespace gl
 		[glContext update];
 	}
 
-	bool GlContext::isSwapChainSupported()
+	uint64_t GlContext::getCaps() const
 	{
-		return false;
+		uint64_t caps = 0;
+#if defined(MAC_OS_X_VERSION_MAX_ALLOWED) && (MAC_OS_X_VERSION_MAX_ALLOWED >= 1070)
+		NSWindow* nsWindow = (NSWindow*)g_platformData.nwh;
+		if ([nsWindow respondsToSelector:@selector(backingScaleFactor)] && (1.0f < [nsWindow backingScaleFactor]))
+			caps |= BGFX_CAPS_HIDPI;
+#endif // defined(MAC_OS_X_VERSION_MAX_ALLOWED) && (MAC_OS_X_VERSION_MAX_ALLOWED >= 1070)
+		return caps;
 	}
 
 	SwapChainGL* GlContext::createSwapChain(void* _nwh)
@@ -176,6 +188,8 @@ namespace bgfx { namespace gl
 	{
 		if (NULL == _swapChain)
 		{
+			NSOpenGLContext* glContext = (NSOpenGLContext*)m_context;
+			[glContext makeCurrentContext];
 		}
 		else
 		{

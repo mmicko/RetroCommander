@@ -55,14 +55,16 @@ static const uint16_t s_cubeIndices[36] =
 	6, 3, 7,
 };
 
-int _main_(int /*_argc*/, char** /*_argv*/)
+int _main_(int _argc, char** _argv)
 {
+	Args args(_argc, _argv);
+
 	uint32_t width = 1280;
 	uint32_t height = 720;
 	uint32_t debug = BGFX_DEBUG_TEXT;
 	uint32_t reset = BGFX_RESET_VSYNC;
 
-	bgfx::init();
+	bgfx::init(args.m_type, args.m_pciId);
 	bgfx::reset(width, height, reset);
 
 	// Enable debug text.
@@ -104,7 +106,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 		// This dummy draw call is here to make sure that view 0 is cleared
 		// if no other draw calls are submitted to view 0.
-		bgfx::submit(0);
+		bgfx::touch(0);
 
 		int64_t now = bx::getHPCounter();
 		static int64_t last = now;
@@ -135,7 +137,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 			// Set view and projection matrix for view 0.
 			const bgfx::HMD* hmd = bgfx::getHMD();
-			if (NULL != hmd && 0 != (hmd->flags & BGFX_HMD_RENDERING))
+			if (NULL != hmd && 0 != (hmd->flags & BGFX_HMD_RENDERING) )
 			{
 				float view[16];
 				bx::mtxQuatTranslationHMD(view, hmd->eye[0].rotation, eye);
@@ -191,9 +193,6 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 					}
 				}
 
-				// Set vertex and fragment shaders.
-				bgfx::setProgram(program);
-
 				// Set vertex and index buffer.
 				bgfx::setVertexBuffer(vbh);
 				bgfx::setIndexBuffer(ibh);
@@ -205,7 +204,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 				bgfx::setState(BGFX_STATE_DEFAULT);
 
 				// Submit primitive for rendering to view 0.
-				bgfx::submit(0);
+				bgfx::submit(0, program);
 			}
 		}
 

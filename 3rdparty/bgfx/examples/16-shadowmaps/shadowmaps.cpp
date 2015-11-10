@@ -10,7 +10,7 @@
 #include "common.h"
 #include "bgfx_utils.h"
 
-#include <bgfx.h>
+#include <bgfx/bgfx.h>
 #include <bx/timer.h>
 #include <bx/readerwriter.h>
 #include <bx/fpumath.h>
@@ -223,8 +223,8 @@ static const uint16_t s_planeIndices[] =
 static bool s_flipV = false;
 static float s_texelHalf = 0.0f;
 
-static bgfx::UniformHandle u_texColor;
-static bgfx::UniformHandle u_shadowMap[ShadowMapRenderTargets::Count];
+static bgfx::UniformHandle s_texColor;
+static bgfx::UniformHandle s_shadowMap[ShadowMapRenderTargets::Count];
 static bgfx::FrameBufferHandle s_rtShadowMap[ShadowMapRenderTargets::Count];
 static bgfx::FrameBufferHandle s_rtBlur;
 
@@ -1006,19 +1006,18 @@ struct Mesh
 
 			// Set model matrix for rendering.
 			bgfx::setTransform(_mtx);
-			bgfx::setProgram(_program);
 			bgfx::setIndexBuffer(group.m_ibh);
 			bgfx::setVertexBuffer(group.m_vbh);
 
 			// Set textures.
 			if (bgfx::invalidHandle != _texture.idx)
 			{
-				bgfx::setTexture(0, u_texColor, _texture);
+				bgfx::setTexture(0, s_texColor, _texture);
 			}
 
 			for (uint8_t ii = 0; ii < ShadowMapRenderTargets::Count; ++ii)
 			{
-				bgfx::setTexture(4 + ii, u_shadowMap[ii], s_rtShadowMap[ii]);
+				bgfx::setTexture(4 + ii, s_shadowMap[ii], s_rtShadowMap[ii]);
 			}
 
 			// Apply render state.
@@ -1026,7 +1025,7 @@ struct Mesh
 			bgfx::setState(_renderState.m_state, _renderState.m_blendFactorRgba);
 
 			// Submit.
-			bgfx::submit(_viewId);
+			bgfx::submit(_viewId, _program);
 		}
 	}
 
@@ -1314,15 +1313,17 @@ struct ShadowMapSettings
 #undef IMGUI_FLOAT_PARAM
 };
 
-int _main_(int /*_argc*/, char** /*_argv*/)
+int _main_(int _argc, char** _argv)
 {
+	Args args(_argc, _argv);
+
 	uint32_t debug = BGFX_DEBUG_TEXT;
 	uint32_t reset = BGFX_RESET_VSYNC;
 
 	ViewState viewState(1280, 720);
 	ClearValues clearValues(0x00000000, 1.0f, 0);
 
-	bgfx::init();
+	bgfx::init(args.m_type, args.m_pciId);
 	bgfx::reset(viewState.m_width, viewState.m_height, reset);
 
 	// Enable debug text.
@@ -1350,11 +1351,11 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	// Uniforms.
 	s_uniforms.init();
-	u_texColor = bgfx::createUniform("u_texColor",  bgfx::UniformType::Int1);
-	u_shadowMap[0] = bgfx::createUniform("u_shadowMap0", bgfx::UniformType::Int1);
-	u_shadowMap[1] = bgfx::createUniform("u_shadowMap1", bgfx::UniformType::Int1);
-	u_shadowMap[2] = bgfx::createUniform("u_shadowMap2", bgfx::UniformType::Int1);
-	u_shadowMap[3] = bgfx::createUniform("u_shadowMap3", bgfx::UniformType::Int1);
+	s_texColor = bgfx::createUniform("s_texColor",  bgfx::UniformType::Int1);
+	s_shadowMap[0] = bgfx::createUniform("s_shadowMap0", bgfx::UniformType::Int1);
+	s_shadowMap[1] = bgfx::createUniform("s_shadowMap1", bgfx::UniformType::Int1);
+	s_shadowMap[2] = bgfx::createUniform("s_shadowMap2", bgfx::UniformType::Int1);
+	s_shadowMap[3] = bgfx::createUniform("s_shadowMap3", bgfx::UniformType::Int1);
 
 	// Programs.
 	s_programs.init();
@@ -1959,7 +1960,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	const float camNear    = 0.1f;
 	const float camFar     = 2000.0f;
 	const float projHeight = 1.0f/tanf(bx::toRad(camFovy)*0.5f);
-	const float projWidth  = projHeight * 1.0f/camAspect;
+	const float projWidth  = projHeight * camAspect;
 	bx::mtxProj(viewState.m_proj, camFovy, camAspect, camNear, camFar);
 	cameraGetViewMtx(viewState.m_view);
 
@@ -1972,8 +1973,9 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		// Imgui.
 		imguiBeginFrame(mouseState.m_mx
 			, mouseState.m_my
-			, (mouseState.m_buttons[entry::MouseButton::Left  ] ? IMGUI_MBUT_LEFT  : 0)
-			| (mouseState.m_buttons[entry::MouseButton::Right ] ? IMGUI_MBUT_RIGHT : 0)
+			, (mouseState.m_buttons[entry::MouseButton::Left  ] ? IMGUI_MBUT_LEFT   : 0)
+			| (mouseState.m_buttons[entry::MouseButton::Right ] ? IMGUI_MBUT_RIGHT  : 0)
+			| (mouseState.m_buttons[entry::MouseButton::Middle] ? IMGUI_MBUT_MIDDLE : 0)
 			, mouseState.m_mz
 			, viewState.m_width
 			, viewState.m_height
@@ -1985,9 +1987,9 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 #define IMGUI_FLOAT_SLIDER(_name, _val) \
 			imguiSlider(_name \
 					, _val \
-					, *(((float*)&_val)+1) \
-					, *(((float*)&_val)+2) \
-					, *(((float*)&_val)+3) \
+					, *( ((float*)&_val)+1) \
+					, *( ((float*)&_val)+2) \
+					, *( ((float*)&_val)+3) \
 					)
 
 		imguiBool("Update lights", settings.m_updateLights);
@@ -2648,7 +2650,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 				, clearValues.m_clearDepth
 				, clearValues.m_clearStencil
 				);
-		bgfx::submit(0);
+		bgfx::touch(0);
 
 		// Clear shadowmap rendertarget at beginning.
 		const uint8_t flags0 = (LightType::DirectionalLight == settings.m_lightType)
@@ -2662,7 +2664,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 				, clearValues.m_clearDepth
 				, clearValues.m_clearStencil
 				);
-		bgfx::submit(RENDERVIEW_SHADOWMAP_0_ID);
+		bgfx::touch(RENDERVIEW_SHADOWMAP_0_ID);
 
 		const uint8_t flags1 = (LightType::DirectionalLight == settings.m_lightType)
 							 ? BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH
@@ -2677,7 +2679,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 					, clearValues.m_clearDepth
 					, clearValues.m_clearStencil
 					);
-			bgfx::submit(RENDERVIEW_SHADOWMAP_1_ID+ii);
+			bgfx::touch(RENDERVIEW_SHADOWMAP_1_ID+ii);
 		}
 
 		// Render.
@@ -2727,7 +2729,6 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 					vertex[5].m_y = max;
 					vertex[5].m_z = zz;
 
-					bgfx::setProgram(s_programs.m_black);
 					bgfx::setState(0);
 					bgfx::setStencil(BGFX_STENCIL_TEST_ALWAYS
 							| BGFX_STENCIL_FUNC_REF(1)
@@ -2737,7 +2738,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 							| BGFX_STENCIL_OP_PASS_Z_REPLACE
 							);
 					bgfx::setVertexBuffer(&vb);
-					bgfx::submit(RENDERVIEW_SHADOWMAP_0_ID);
+					bgfx::submit(RENDERVIEW_SHADOWMAP_0_ID, s_programs.m_black);
 				}
 			}
 
@@ -2810,19 +2811,18 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		bool bVsmOrEsm = (SmImpl::VSM == settings.m_smImpl) || (SmImpl::ESM == settings.m_smImpl);
 
 		// Blur shadow map.
-		if (bVsmOrEsm && currentSmSettings->m_doBlur)
+		if (bVsmOrEsm
+		&&  currentSmSettings->m_doBlur)
 		{
-			bgfx::setTexture(4, u_shadowMap[0], s_rtShadowMap[0]);
-			bgfx::setProgram(s_programs.m_vBlur[depthType]);
+			bgfx::setTexture(4, s_shadowMap[0], s_rtShadowMap[0]);
 			bgfx::setState(BGFX_STATE_RGB_WRITE|BGFX_STATE_ALPHA_WRITE);
 			screenSpaceQuad(currentShadowMapSizef, currentShadowMapSizef, s_flipV);
-			bgfx::submit(RENDERVIEW_VBLUR_0_ID);
+			bgfx::submit(RENDERVIEW_VBLUR_0_ID, s_programs.m_vBlur[depthType]);
 
-			bgfx::setTexture(4, u_shadowMap[0], s_rtBlur);
-			bgfx::setProgram(s_programs.m_hBlur[depthType]);
+			bgfx::setTexture(4, s_shadowMap[0], s_rtBlur);
 			bgfx::setState(BGFX_STATE_RGB_WRITE|BGFX_STATE_ALPHA_WRITE);
 			screenSpaceQuad(currentShadowMapSizef, currentShadowMapSizef, s_flipV);
-			bgfx::submit(RENDERVIEW_HBLUR_0_ID);
+			bgfx::submit(RENDERVIEW_HBLUR_0_ID, s_programs.m_hBlur[depthType]);
 
 			if (LightType::DirectionalLight == settings.m_lightType)
 			{
@@ -2830,17 +2830,15 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 				{
 					const uint8_t viewId = RENDERVIEW_VBLUR_0_ID + jj;
 
-					bgfx::setTexture(4, u_shadowMap[0], s_rtShadowMap[ii]);
-					bgfx::setProgram(s_programs.m_vBlur[depthType]);
+					bgfx::setTexture(4, s_shadowMap[0], s_rtShadowMap[ii]);
 					bgfx::setState(BGFX_STATE_RGB_WRITE|BGFX_STATE_ALPHA_WRITE);
 					screenSpaceQuad(currentShadowMapSizef, currentShadowMapSizef, s_flipV);
-					bgfx::submit(viewId);
+					bgfx::submit(viewId, s_programs.m_vBlur[depthType]);
 
-					bgfx::setTexture(4, u_shadowMap[0], s_rtBlur);
-					bgfx::setProgram(s_programs.m_hBlur[depthType]);
+					bgfx::setTexture(4, s_shadowMap[0], s_rtBlur);
 					bgfx::setState(BGFX_STATE_RGB_WRITE|BGFX_STATE_ALPHA_WRITE);
 					screenSpaceQuad(currentShadowMapSizef, currentShadowMapSizef, s_flipV);
-					bgfx::submit(viewId+1);
+					bgfx::submit(viewId+1, s_programs.m_hBlur[depthType]);
 				}
 			}
 		}
@@ -3067,21 +3065,19 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		// Draw depth rect.
 		if (settings.m_drawDepthBuffer)
 		{
-			bgfx::setTexture(4, u_shadowMap[0], s_rtShadowMap[0]);
-			bgfx::setProgram(s_programs.m_drawDepth[depthType]);
+			bgfx::setTexture(4, s_shadowMap[0], s_rtShadowMap[0]);
 			bgfx::setState(BGFX_STATE_RGB_WRITE|BGFX_STATE_ALPHA_WRITE);
 			screenSpaceQuad(currentShadowMapSizef, currentShadowMapSizef, s_flipV);
-			bgfx::submit(RENDERVIEW_DRAWDEPTH_0_ID);
+			bgfx::submit(RENDERVIEW_DRAWDEPTH_0_ID, s_programs.m_drawDepth[depthType]);
 
 			if (LightType::DirectionalLight == settings.m_lightType)
 			{
 				for (uint8_t ii = 1; ii < settings.m_numSplits; ++ii)
 				{
-					bgfx::setTexture(4, u_shadowMap[0], s_rtShadowMap[ii]);
-					bgfx::setProgram(s_programs.m_drawDepth[depthType]);
+					bgfx::setTexture(4, s_shadowMap[0], s_rtShadowMap[ii]);
 					bgfx::setState(BGFX_STATE_RGB_WRITE|BGFX_STATE_ALPHA_WRITE);
 					screenSpaceQuad(currentShadowMapSizef, currentShadowMapSizef, s_flipV);
-					bgfx::submit(RENDERVIEW_DRAWDEPTH_0_ID+ii);
+					bgfx::submit(RENDERVIEW_DRAWDEPTH_0_ID+ii, s_programs.m_drawDepth[depthType]);
 				}
 			}
 		}
@@ -3151,11 +3147,11 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	s_programs.destroy();
 
-	bgfx::destroyUniform(u_texColor);
-	bgfx::destroyUniform(u_shadowMap[3]);
-	bgfx::destroyUniform(u_shadowMap[2]);
-	bgfx::destroyUniform(u_shadowMap[1]);
-	bgfx::destroyUniform(u_shadowMap[0]);
+	bgfx::destroyUniform(s_texColor);
+	bgfx::destroyUniform(s_shadowMap[3]);
+	bgfx::destroyUniform(s_shadowMap[2]);
+	bgfx::destroyUniform(s_shadowMap[1]);
+	bgfx::destroyUniform(s_shadowMap[0]);
 
 	s_uniforms.destroy();
 
